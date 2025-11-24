@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ReviewController;
 
+use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
+
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\DestinationController as UserDestinationController;
 use App\Http\Controllers\User\FavoriteController;
@@ -41,7 +43,7 @@ Route::get('/', function () {
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -83,11 +85,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('reports', [DashboardController::class, 'reports'])->name('reports');
 });
 
-// Mitra Routes - Protected by auth and mitra middleware (Coming soon)
+// Mitra Routes - Protected by auth and mitra middleware
 Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('mitra.dashboard');
-    })->name('dashboard');
+    // Dashboard
+    Route::get('/dashboard', [MitraDashboardController::class, 'index'])->name('dashboard');
+
+    // Placeholder routes for future implementation
+    Route::get('/destinations', function () {
+        return view('mitra.destinations.index');
+    })->name('destinations.index');
+
+    Route::get('/hotels', function () {
+        return view('mitra.hotels.index');
+    })->name('hotels.index');
+
+    Route::get('/restaurants', function () {
+        return view('mitra.restaurants.index');
+    })->name('restaurants.index');
+
+    Route::get('/bookings', function () {
+        return view('mitra.bookings.index');
+    })->name('bookings.index');
+
+    Route::get('/reviews', function () {
+        return view('mitra.reviews.index');
+    })->name('reviews.index');
 });
 
 // User Routes - Protected by auth

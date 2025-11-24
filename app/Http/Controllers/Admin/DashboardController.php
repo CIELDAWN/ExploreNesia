@@ -52,9 +52,16 @@ class DashboardController extends Controller
         // Category statistics
         $category_stats = Category::withCount('destinations')->get();
 
-        // Monthly booking trend (last 6 months)
+        // Monthly booking trend (last 6 months) - Database agnostic
+        $connection = DB::getDriverName();
+        if ($connection === 'pgsql') {
+            $monthColumn = DB::raw('DATE_TRUNC(\'month\', created_at) as month');
+        } else {
+            $monthColumn = DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month');
+        }
+        
         $booking_trend = Booking::select(
-                DB::raw('DATE_TRUNC(\'month\', created_at) as month'),
+                $monthColumn,
                 DB::raw('count(*) as total')
             )
             ->where('created_at', '>=', now()->subMonths(6))

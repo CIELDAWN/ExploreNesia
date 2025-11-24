@@ -73,12 +73,9 @@ class RegisterController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            
-            // Data mitra (jika role = mitra)
-            'mitra_type' => $request->role === 'mitra' ? $request->mitra_type : null,
-            'business_name' => $request->role === 'mitra' ? $request->business_name : null,
-            'business_address' => $request->role === 'mitra' ? $request->business_address : null,
-            'is_verified' => false, // Untuk mitra perlu verifikasi admin
+            'address' => $request->role === 'mitra' ? $request->business_address : null,
+            // Note: mitra_type and business_name can be stored in a separate mitra_profiles table
+            // or added to users table via migration if needed
         ]);
 
         // Auto login setelah register (opsional)

@@ -33,6 +33,15 @@ class LoginController extends Controller
 
             // Redirect berdasarkan role
             $user = Auth::user();
+            
+            // Check if user is active
+            if (!$user->is_active) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.',
+                ])->onlyInput('email');
+            }
+            
             switch($user->role) {
                 case 'admin':
                     return redirect()->route('admin.dashboard');
