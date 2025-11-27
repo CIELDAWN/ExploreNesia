@@ -11,9 +11,9 @@ class Hotel extends Model
 
     protected $fillable = [
         'user_id', 'city_id', 'name', 'slug', 'description', 'address',
-        'latitude', 'longitude', 'star_rating', 'price_per_night_min',
-        'price_per_night_max', 'contact_phone', 'contact_email', 'website',
-        'facilities', 'total_rooms', 'thumbnail', 'status', 'rejection_reason',
+        'star_rating', 'price_per_night_min', 'price_per_night_max', 
+        'contact_phone', 'contact_email', 'website', 'facilities', 
+        'total_rooms', 'thumbnail', 'status', 'rejection_reason',
         'is_active', 'view_count'
     ];
 
@@ -21,8 +21,6 @@ class Hotel extends Model
         'facilities' => 'array',
         'price_per_night_min' => 'decimal:2',
         'price_per_night_max' => 'decimal:2',
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
         'is_active' => 'boolean',
     ];
 

@@ -11,10 +11,10 @@ class Restaurant extends Model
 
     protected $fillable = [
         'user_id', 'city_id', 'name', 'slug', 'description', 'address',
-        'latitude', 'longitude', 'cuisine_types', 'average_price_min',
-        'average_price_max', 'opening_time', 'closing_time', 'contact_phone',
-        'contact_email', 'website', 'facilities', 'capacity', 'thumbnail',
-        'status', 'rejection_reason', 'is_active', 'view_count'
+        'cuisine_types', 'average_price_min', 'average_price_max', 
+        'opening_time', 'closing_time', 'contact_phone', 'contact_email', 
+        'website', 'facilities', 'capacity', 'thumbnail', 'status', 
+        'rejection_reason', 'is_active', 'view_count'
     ];
 
     protected $casts = [
@@ -22,8 +22,6 @@ class Restaurant extends Model
         'facilities' => 'array',
         'average_price_min' => 'decimal:2',
         'average_price_max' => 'decimal:2',
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
         'is_active' => 'boolean',
     ];
 
