@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\MitraBusiness;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -73,19 +74,26 @@ class RegisterController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'mitra_type' => $request->role === 'mitra' ? $request->mitra_type : null,
+            'business_name' => $request->role === 'mitra' ? $request->business_name : null,
             'address' => $request->role === 'mitra' ? $request->business_address : null,
-            // Note: mitra_type and business_name can be stored in a separate mitra_profiles table
-            // or added to users table via migration if needed
         ]);
 
-        // Auto login setelah register (opsional)
-        // Auth::login($user);
-
-        // Redirect berdasarkan role
+        // Jika mitra, buat data mitra
         if ($request->role === 'mitra') {
-            return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda akan diverifikasi oleh admin dalam 1-2 hari kerja.');
-        } else {
-            return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
+            \App\Models\Mitra::create([
+                'user_id' => $user->id,
+                'business_name' => $request->business_name,
+                'business_type' => $request->mitra_type,
+                'business_description' => $request->business_description,
+                'business_address' => $request->business_address,
+                'contact_phone' => $request->contact_phone,
+                'contact_email' => $request->contact_email,
+                'status' => 'pending'
+            ]);
         }
+
+        // Redirect ke login
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
     }
 }

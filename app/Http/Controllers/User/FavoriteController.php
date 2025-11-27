@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\Destination;
 use Illuminate\Http\Request;
