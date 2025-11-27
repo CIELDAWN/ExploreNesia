@@ -8,19 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('favorites', function (Blueprint $table) {
+        Schema::create('visit_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('destination_id')->constrained()->onDelete('cascade');
+            $table->date('visit_date');
+            $table->text('notes')->nullable();
             $table->timestamps();
 
-            // Pastikan user tidak bisa favorite destinasi yang sama 2x
-            $table->unique(['user_id', 'destination_id']);
+            // Index untuk query yang lebih cepat
+            $table->index(['user_id', 'visit_date']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('favorites');
+        Schema::dropIfExists('visit_histories');
     }
 };

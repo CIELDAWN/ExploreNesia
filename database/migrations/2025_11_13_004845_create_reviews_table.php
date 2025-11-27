@@ -11,18 +11,21 @@ return new class extends Migration
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('reviewable'); // polymorphic - sudah auto create index
-            $table->integer('rating'); // 1-5
-            $table->text('comment')->nullable();
-            $table->json('photos')->nullable(); // array foto
-            $table->boolean('is_verified')->default(false); // verified booking
-            $table->boolean('is_approved')->default(true);
+            $table->foreignId('destination_id')->constrained()->onDelete('cascade');
+            $table->integer('rating')->unsigned(); // 1-5
+            $table->text('comment');
+            $table->json('images')->nullable(); // Array gambar review
+            $table->boolean('is_approved')->default(false); // Moderasi mitra
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
-            
-            $table->index('user_id');
-            // index untuk reviewable sudah otomatis dibuat oleh morphs()
-            $table->index('rating');
-            $table->index('is_approved');
+
+            // User hanya bisa review 1x per destinasi
+            $table->unique(['user_id', 'destination_id']);
+
+            // Index untuk query
+            $table->index(['destination_id', 'is_approved']);
+            $table->index(['user_id', 'created_at']);
         });
     }
 

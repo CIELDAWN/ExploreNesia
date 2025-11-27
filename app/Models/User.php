@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -45,14 +46,19 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
-    public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    public function favorites()
+    public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function visitHistories(): HasMany
+    {
+        return $this->hasMany(VisitHistory::class);
     }
 
     // Helper Methods
@@ -69,5 +75,29 @@ class User extends Authenticatable
     public function isUser()
     {
         return $this->role === 'user';
+    }
+
+    // Helper untuk cek apakah user sudah favorit destinasi tertentu
+    public function hasFavorited($destinationId): bool
+    {
+        return $this->favorites()
+            ->where('destination_id', $destinationId)
+            ->exists();
+    }
+
+    // Helper untuk cek apakah user sudah review destinasi tertentu
+    public function hasReviewed($destinationId): bool
+    {
+        return $this->reviews()
+            ->where('destination_id', $destinationId)
+            ->exists();
+    }
+
+    // Helper untuk cek apakah user sudah mengunjungi destinasi tertentu
+    public function hasVisited($destinationId): bool
+    {
+        return $this->visitHistories()
+            ->where('destination_id', $destinationId)
+            ->exists();
     }
 }
