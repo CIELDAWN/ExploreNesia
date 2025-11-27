@@ -16,11 +16,9 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description');
             $table->text('address');
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
             $table->json('cuisine_types')->nullable(); // [Indonesian, Chinese, Western, dll]
-            $table->decimal('average_price_min', 12, 2);
-            $table->decimal('average_price_max', 12, 2);
+            $table->decimal('average_price_min', 12, 2)->nullable();
+            $table->decimal('average_price_max', 12, 2)->nullable();
             $table->time('opening_time')->nullable();
             $table->time('closing_time')->nullable();
             $table->string('contact_phone')->nullable();

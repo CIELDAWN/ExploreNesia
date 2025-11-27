@@ -11,7 +11,7 @@ class Destination extends Model
 
     protected $fillable = [
         'user_id', 'city_id', 'category_id', 'name', 'slug', 'description',
-        'address', 'latitude', 'longitude', 'entrance_fee', 'opening_time',
+        'address', 'entrance_fee', 'opening_time',
         'closing_time', 'contact_phone', 'contact_email', 'website',
         'facilities', 'thumbnail', 'status', 'rejection_reason', 'is_active', 'view_count'
     ];
@@ -19,8 +19,6 @@ class Destination extends Model
     protected $casts = [
         'facilities' => 'array',
         'entrance_fee' => 'decimal:2',
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
         'is_active' => 'boolean',
     ];
 

@@ -144,14 +144,23 @@
                                 <i class="fas fa-lock mr-2 text-ocean-600"></i>
                                 Password
                             </label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent transition"
-                                placeholder="••••••••"
-                                required
-                            >
+                            <div class="relative">
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent transition"
+                                    placeholder="••••••••"
+                                    required
+                                >
+                                <button 
+                                    type="button" 
+                                    id="togglePassword"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <i class="fas fa-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Remember Me -->
@@ -193,5 +202,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Password toggle functionality
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
 </body>
 </html>

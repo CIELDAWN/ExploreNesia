@@ -7,26 +7,7 @@
 @section('content')
 
 <!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Total Destinations -->
-    <div class="stat-card bg-white rounded-xl shadow-sm p-6 border-l-4 border-ocean-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Destinasi Wisata</p>
-                <h3 class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_destinations']) }}</h3>
-                <p class="text-xs text-gray-600 mt-2">
-                    <span class="text-green-600">{{ $stats['approved_destinations'] }} disetujui</span>
-                    @if($stats['pending_destinations'] > 0)
-                    <span class="text-orange-600">• {{ $stats['pending_destinations'] }} menunggu</span>
-                    @endif
-                </p>
-            </div>
-            <div class="w-16 h-16 rounded-full gradient-ocean flex items-center justify-center">
-                <i class="fas fa-map-marked-alt text-white text-2xl"></i>
-            </div>
-        </div>
-    </div>
-
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <!-- Total Hotels -->
     <div class="stat-card bg-white rounded-xl shadow-sm p-6 border-l-4 border-ocean-500">
         <div class="flex items-center justify-between">
@@ -116,7 +97,7 @@
             <div>
                 <p class="text-sm text-gray-600">Ditolak</p>
                 <p class="text-2xl font-bold text-gray-900">
-                    {{ $stats['rejected_destinations'] + $stats['rejected_hotels'] + $stats['rejected_restaurants'] }}
+                    {{ $stats['rejected_hotels'] + $stats['rejected_restaurants'] }}
                 </p>
             </div>
         </div>
@@ -125,40 +106,6 @@
 
 <!-- Charts and Tables Row -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Popular Destinations -->
-    <div class="bg-white rounded-xl shadow-sm p-6">
-        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fas fa-fire text-orange-500"></i>
-            Destinasi Terpopuler Saya
-        </h3>
-        <div class="space-y-4">
-            @forelse($popular_destinations as $dest)
-            <div class="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
-                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center text-white font-bold">
-                    {{ $loop->iteration }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-medium text-gray-900 truncate">{{ $dest->name }}</p>
-                    <p class="text-sm text-gray-500">
-                        <i class="fas fa-eye mr-1"></i> {{ number_format($dest->view_count) }} views
-                        <span class="mx-2">•</span>
-                        <i class="fas fa-star text-yellow-400 mr-1"></i> {{ $dest->reviews_count }} reviews
-                        <span class="mx-2">•</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium
-                            {{ $dest->status === 'approved' ? 'bg-green-100 text-green-800' : '' }}
-                            {{ $dest->status === 'pending' ? 'bg-orange-100 text-orange-800' : '' }}
-                            {{ $dest->status === 'rejected' ? 'bg-red-100 text-red-800' : '' }}">
-                            {{ ucfirst($dest->status) }}
-                        </span>
-                    </p>
-                </div>
-            </div>
-            @empty
-            <p class="text-center text-gray-500 py-8">Belum ada destinasi</p>
-            @endforelse
-        </div>
-    </div>
-
     <!-- Status Overview -->
     <div class="bg-white rounded-xl shadow-sm p-6">
         <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -174,13 +121,13 @@
                         Disetujui
                     </span>
                     <span class="text-sm font-bold text-gray-900">
-                        {{ $stats['approved_destinations'] + $stats['approved_hotels'] + $stats['approved_restaurants'] }}
+                        {{ $stats['approved_hotels'] + $stats['approved_restaurants'] }}
                     </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3">
                     @php
-                        $total = $stats['total_destinations'] + $stats['total_hotels'] + $stats['total_restaurants'];
-                        $approved = $stats['approved_destinations'] + $stats['approved_hotels'] + $stats['approved_restaurants'];
+                        $total = $stats['total_hotels'] + $stats['total_restaurants'];
+                        $approved = $stats['approved_hotels'] + $stats['approved_restaurants'];
                         $approvedPercent = $total > 0 ? ($approved / $total * 100) : 0;
                     @endphp
                     <div class="bg-green-500 h-3 rounded-full" style="width: {{ $approvedPercent }}%"></div>
@@ -195,12 +142,12 @@
                         Menunggu Persetujuan
                     </span>
                     <span class="text-sm font-bold text-gray-900">
-                        {{ $stats['pending_destinations'] + $stats['pending_hotels'] + $stats['pending_restaurants'] }}
+                        {{ $stats['pending_hotels'] + $stats['pending_restaurants'] }}
                     </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3">
                     @php
-                        $pending = $stats['pending_destinations'] + $stats['pending_hotels'] + $stats['pending_restaurants'];
+                        $pending = $stats['pending_hotels'] + $stats['pending_restaurants'];
                         $pendingPercent = $total > 0 ? ($pending / $total * 100) : 0;
                     @endphp
                     <div class="bg-orange-500 h-3 rounded-full" style="width: {{ $pendingPercent }}%"></div>
@@ -215,12 +162,12 @@
                         Ditolak
                     </span>
                     <span class="text-sm font-bold text-gray-900">
-                        {{ $stats['rejected_destinations'] + $stats['rejected_hotels'] + $stats['rejected_restaurants'] }}
+                        {{ $stats['rejected_hotels'] + $stats['rejected_restaurants'] }}
                     </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3">
                     @php
-                        $rejected = $stats['rejected_destinations'] + $stats['rejected_hotels'] + $stats['rejected_restaurants'];
+                        $rejected = $stats['rejected_hotels'] + $stats['rejected_restaurants'];
                         $rejectedPercent = $total > 0 ? ($rejected / $total * 100) : 0;
                     @endphp
                     <div class="bg-red-500 h-3 rounded-full" style="width: {{ $rejectedPercent }}%"></div>

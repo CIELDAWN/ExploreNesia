@@ -9,6 +9,13 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ReviewController;
 
 use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
+use App\Http\Controllers\Mitra\GeoController;
+use App\Http\Controllers\Mitra\HotelController as MitraHotelController;
+use App\Http\Controllers\Mitra\RestaurantController as MitraRestaurantController;
+use App\Http\Controllers\Mitra\BookingController as MitraBookingController;
+use App\Http\Controllers\Mitra\ReviewController as MitraReviewController;
+use App\Http\Controllers\Mitra\PromotionController as MitraPromotionController;
+use App\Http\Controllers\Mitra\NotificationController as MitraNotificationController;
 
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\DestinationController as UserDestinationController;
@@ -90,26 +97,26 @@ Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(fun
     // Dashboard
     Route::get('/dashboard', [MitraDashboardController::class, 'index'])->name('dashboard');
 
-    // Placeholder routes for future implementation
-    Route::get('/destinations', function () {
-        return view('mitra.destinations.index');
-    })->name('destinations.index');
+    // Content management
+    Route::resource('hotels', MitraHotelController::class);
+    Route::resource('restaurants', MitraRestaurantController::class);
 
-    Route::get('/hotels', function () {
-        return view('mitra.hotels.index');
-    })->name('hotels.index');
+    // Promotions
+    Route::resource('promotions', MitraPromotionController::class)->except(['show']);
 
-    Route::get('/restaurants', function () {
-        return view('mitra.restaurants.index');
-    })->name('restaurants.index');
+    // Bookings management
+    Route::get('/bookings', [MitraBookingController::class, 'index'])->name('bookings.index');
+    Route::patch('/bookings/{booking}/status', [MitraBookingController::class, 'updateStatus'])->name('bookings.update-status');
 
-    Route::get('/bookings', function () {
-        return view('mitra.bookings.index');
-    })->name('bookings.index');
+    // Reviews
+    Route::get('/reviews', [MitraReviewController::class, 'index'])->name('reviews.index');
 
-    Route::get('/reviews', function () {
-        return view('mitra.reviews.index');
-    })->name('reviews.index');
+    // Notifications
+    Route::get('/notifications', [MitraNotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [MitraNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [MitraNotificationController::class, 'markAsRead'])->name('notifications.read');
+
+    Route::post('/geo/sync-city', [GeoController::class, 'syncCity'])->name('geo.sync-city');
 });
 
 // User Routes - Protected by auth
