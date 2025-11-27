@@ -16,11 +16,9 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description');
             $table->text('address');
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
             $table->integer('star_rating')->default(0); // 1-5
-            $table->decimal('price_per_night_min', 12, 2);
-            $table->decimal('price_per_night_max', 12, 2);
+            $table->decimal('price_per_night_min', 12, 2)->nullable();
+            $table->decimal('price_per_night_max', 12, 2)->nullable();
             $table->string('contact_phone')->nullable();
             $table->string('contact_email')->nullable();
             $table->string('website')->nullable();
@@ -33,7 +31,7 @@ return new class extends Migration
             $table->integer('view_count')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index('user_id');
             $table->index('city_id');
             $table->index('slug');

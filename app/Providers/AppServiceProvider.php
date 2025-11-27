@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Booking;
+use App\Models\Review;
+use App\Observers\BookingObserver;
+use App\Observers\ReviewObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -26,5 +30,8 @@ class AppServiceProvider extends ServiceProvider
         // Jika admin dan mitra middleware belum terdaftar, register juga
         $router->aliasMiddleware('admin', \App\Http\Middleware\AdminMiddleware::class);
         $router->aliasMiddleware('mitra', \App\Http\Middleware\MitraMiddleware::class);
+
+        Booking::observe(BookingObserver::class);
+        Review::observe(ReviewObserver::class);
     }
 }
