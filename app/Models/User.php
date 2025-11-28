@@ -26,6 +26,8 @@ class User extends Authenticatable
     ];
 
     // Relationships
+
+    // Legacy relationships (akan dihapus nanti)
     public function destinations()
     {
         return $this->hasMany(Destination::class);
@@ -75,6 +77,12 @@ class User extends Authenticatable
     public function isUser()
     {
         return $this->role === 'user';
+    }
+
+    // Relationship untuk mitra
+    public function mitra()
+    {
+        return $this->hasOne(Mitra::class);
     }
 
     // Helper untuk cek apakah user sudah favorit destinasi tertentu

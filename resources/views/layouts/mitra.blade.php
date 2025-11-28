@@ -156,29 +156,26 @@
                 Kelola Bisnis
             </div>
 
-            <a href="{{ route('mitra.hotels.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.hotels.*') ? 'active text-white' : '' }}">
-                <i class="fas fa-hotel w-5"></i>
-                <span class="font-medium">Hotel</span>
-            </a>
-
-            <a href="{{ route('mitra.restaurants.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.restaurants.*') ? 'active text-white' : '' }}">
-                <i class="fas fa-utensils w-5"></i>
-                <span class="font-medium">Restoran</span>
+            <a href="{{ route('mitra.edit') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.edit') ? 'active text-white' : '' }}">
+                <i class="fas fa-edit w-5"></i>
+                <span class="font-medium">Edit Bisnis</span>
             </a>
 
             <div class="mt-6 mb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Aktivitas
             </div>
 
-            <a href="{{ route('mitra.bookings.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.bookings.*') ? 'active text-white' : '' }}">
+            <div class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 opacity-50">
                 <i class="fas fa-calendar-check w-5"></i>
                 <span class="font-medium">Pemesanan</span>
-            </a>
+                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Segera</span>
+            </div>
 
-            <a href="{{ route('mitra.reviews.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.reviews.*') ? 'active text-white' : '' }}">
+            <div class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 opacity-50">
                 <i class="fas fa-star w-5"></i>
                 <span class="font-medium">Ulasan</span>
-            </a>
+                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Segera</span>
+            </div>
         </nav>
 
         <!-- User Profile -->

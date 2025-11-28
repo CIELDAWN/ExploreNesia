@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\Hotel;
 use App\Models\Restaurant;
+use App\Models\MitraBusiness;
 use App\Models\User;
 use App\Notifications\NewBookingNotification;
 
@@ -29,10 +30,12 @@ class BookingObserver
 
         return match ($booking->bookable_type) {
             Destination::class, Hotel::class, Restaurant::class => optional($booking->bookable)->user_id,
+            MitraBusiness::class => optional($booking->bookable)->user_id,
             default => null,
         };
     }
 }
+
 
 
 
