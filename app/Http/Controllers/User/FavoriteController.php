@@ -5,125 +5,99 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\Destination;
+use App\Models\Hotel;
+use App\Models\Restaurant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
 {
     /**
-     * Tampilkan daftar favorit user
+     * Display user's favorites
      */
     public function index()
     {
-        $favorites = Favorite::with(['destination.mitra', 'destination.reviews'])
-            ->forUser(Auth::id())
+        $favorites = auth()->user()->favorites()
+            ->with('favoritable')
             ->latest()
-            ->paginate(12);
+            ->get();
 
-        return view('user.favorites.index', compact('favorites'));
+        return view('user.favorites', compact('favorites'));
     }
 
     /**
-     * Tambahkan destinasi ke favorit
+     * Add item to favorites
      */
     public function store(Request $request)
     {
         $request->validate([
-            'destination_id' => 'required|exists:destinations,id'
+            'favoritable_type' => 'required|string',
+            'favoritable_id' => 'required|integer',
         ]);
 
-        try {
-            $favorite = Favorite::create([
-                'user_id' => Auth::id(),
-                'destination_id' => $request->destination_id
-            ]);
+        // Check if already favorited
+        $exists = Favorite::where('user_id', auth()->id())
+            ->where('favoritable_type', $request->favoritable_type)
+            ->where('favoritable_id', $request->favoritable_id)
+            ->exists();
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Destinasi berhasil ditambahkan ke favorit',
-                    'data' => $favorite
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Destinasi berhasil ditambahkan ke favorit');
-        } catch (\Exception $e) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Destinasi sudah ada di favorit'
-                ], 422);
-            }
-
-            return redirect()->back()->with('error', 'Destinasi sudah ada di favorit');
+        if ($exists) {
+            return back()->with('info', 'Item sudah ada di favorites Anda.');
         }
+
+        Favorite::create([
+            'user_id' => auth()->id(),
+            'favoritable_type' => $request->favoritable_type,
+            'favoritable_id' => $request->favoritable_id,
+        ]);
+
+        return back()->with('success', 'Berhasil ditambahkan ke favorites!');
     }
 
     /**
-     * Hapus destinasi dari favorit
+     * Remove item from favorites
      */
     public function destroy($id)
     {
         $favorite = Favorite::where('id', $id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', auth()->id())
             ->firstOrFail();
 
         $favorite->delete();
 
-        if (request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Destinasi berhasil dihapus dari favorit'
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Destinasi berhasil dihapus dari favorit');
+        return back()->with('success', 'Berhasil dihapus dari favorites!');
     }
 
     /**
-     * Cek apakah destinasi sudah difavoritkan
-     */
-    public function check($destinationId)
-    {
-        $isFavorited = Favorite::where('user_id', Auth::id())
-            ->where('destination_id', $destinationId)
-            ->exists();
-
-        return response()->json([
-            'is_favorited' => $isFavorited
-        ]);
-    }
-
-    /**
-     * Toggle favorit (tambah/hapus)
+     * Toggle favorite (add/remove)
      */
     public function toggle(Request $request)
     {
         $request->validate([
-            'destination_id' => 'required|exists:destinations,id'
+            'favoritable_type' => 'required|string',
+            'favoritable_id' => 'required|integer',
         ]);
 
-        $favorite = Favorite::where('user_id', Auth::id())
-            ->where('destination_id', $request->destination_id)
+        $favorite = Favorite::where('user_id', auth()->id())
+            ->where('favoritable_type', $request->favoritable_type)
+            ->where('favoritable_id', $request->favoritable_id)
             ->first();
 
         if ($favorite) {
             $favorite->delete();
-            $message = 'Destinasi dihapus dari favorit';
-            $isFavorited = false;
+            return response()->json([
+                'status' => 'removed',
+                'message' => 'Dihapus dari favorites'
+            ]);
         } else {
             Favorite::create([
-                'user_id' => Auth::id(),
-                'destination_id' => $request->destination_id
+                'user_id' => auth()->id(),
+                'favoritable_type' => $request->favoritable_type,
+                'favoritable_id' => $request->favoritable_id,
             ]);
-            $message = 'Destinasi ditambahkan ke favorit';
-            $isFavorited = true;
+            return response()->json([
+                'status' => 'added',
+                'message' => 'Ditambahkan ke favorites'
+            ]);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'is_favorited' => $isFavorited
-        ]);
     }
 }

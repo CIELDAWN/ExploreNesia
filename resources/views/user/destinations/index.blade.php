@@ -26,19 +26,16 @@
 
                     <!-- Category Filter -->
                     <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                    <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                @if($category->icon)
-                                    <i class="{{ $category->icon }} mr-2"></i>
-                                @endif
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                        <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->icon }} {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- City Filter -->
                     <div class="mb-6">
@@ -46,20 +43,13 @@
                         <select name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
                             <option value="">Semua Kota</option>
                             @foreach($cities as $city)
-                                {{-- Jika cities table sudah ada kolom 'name' --}}
-                                @if(isset($city->name))
-                                    <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>
-                                        {{ $city->name }}
-                                    </option>
-                                {{-- Fallback ke ID jika belum ada nama --}}
-                                @else
-                                    <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>
-                                        Kota {{ $city->id }}
-                                    </option>
-                                @endif
+                                <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>
+                                    {{ $city->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
+
                     <!-- Price Range -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Range Harga</label>
@@ -108,11 +98,6 @@
                         dari <span class="font-semibold">{{ $destinations->total() }}</span> destinasi
                     </p>
                 </div>
-
-                <!-- Mobile Filter Toggle -->
-                <button id="mobileFilterToggle" class="lg:hidden bg-ocean-600 text-white px-4 py-2 rounded-lg font-semibold">
-                    <i class="fas fa-filter mr-2"></i>Filter
-                </button>
             </div>
 
             <!-- Destinations Grid -->
@@ -124,29 +109,42 @@
                         @if($destination->thumbnail)
                             <div class="h-48 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $destination->thumbnail) }}');"></div>
                         @else
-                            <div class="h-48 bg-gray-200 flex items-center justify-center">
-                                <i class="fas fa-image text-gray-400 text-4xl"></i>
+                            <div class="h-48 bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center">
+                                <i class="fas fa-map-marked-alt text-white text-4xl"></i>
                             </div>
                         @endif
 
                         <!-- Content -->
                         <div class="p-6">
-                            <!-- Category Badge -->
+                            <!-- Category Badge & Favorite -->
                             <div class="flex justify-between items-start mb-3">
                                 <span class="inline-block px-3 py-1 bg-ocean-100 text-ocean-700 text-xs font-semibold rounded-full">
-                                    {{ $destination->category->name ?? 'Umum' }}
+                                    {{ $destination->category->icon ?? '📍' }} {{ $destination->category->name ?? 'Umum' }}
                                 </span>
-                                <button class="favorite-btn text-gray-400 hover:text-red-500 transition"
-                                        data-destination-id="{{ $destination->id }}"
-                                        data-is-favorited="false">
+                                @auth
+                                <form action="{{ route('user.favorites.toggle') }}" method="POST" class="favorite-form">
+                                    @csrf
+                                    <input type="hidden" name="favoritable_type" value="App\Models\Destination">
+                                    <input type="hidden" name="favoritable_id" value="{{ $destination->id }}">
+                                    <button type="submit" class="favorite-btn text-gray-400 hover:text-red-500 transition">
+                                        @if(auth()->user()->favorites()->where('favoritable_type', 'App\Models\Destination')->where('favoritable_id', $destination->id)->exists())
+                                            <i class="fas fa-heart text-red-500"></i>
+                                        @else
+                                            <i class="far fa-heart"></i>
+                                        @endif
+                                    </button>
+                                </form>
+                                @else
+                                <a href="{{ route('login') }}" class="text-gray-400 hover:text-red-500 transition">
                                     <i class="far fa-heart"></i>
-                                </button>
+                                </a>
+                                @endauth
                             </div>
 
                             <!-- Title & Location -->
                             <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{{ $destination->name }}</h3>
                             <div class="flex items-center text-gray-600 mb-3">
-                                <i class="fas fa-map-marker-alt text-sm mr-2"></i>
+                                <i class="fas fa-map-marker-alt text-sm mr-2 text-ocean-600"></i>
                                 <span class="text-sm">{{ $destination->city->name ?? 'N/A' }}</span>
                             </div>
 
@@ -155,25 +153,28 @@
                                 {{ Str::limit(strip_tags($destination->description), 100) }}
                             </p>
 
+                            <!-- Stats -->
+                            <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
+                                <span><i class="fas fa-eye mr-1"></i>{{ number_format($destination->view_count) }}</span>
+                                <span><i class="fas fa-star text-yellow-400 mr-1"></i>4.5</span>
+                            </div>
+
                             <!-- Price & Action -->
                             <div class="flex items-center justify-between">
                                 <div>
+                                    @if($destination->entrance_fee > 0)
                                     <span class="text-ocean-600 font-bold text-lg">
                                         Rp {{ number_format($destination->entrance_fee, 0, ',', '.') }}
                                     </span>
                                     <span class="text-gray-500 text-sm block">/orang</span>
+                                    @else
+                                    <span class="text-forest-600 font-bold text-lg">Gratis</span>
+                                    @endif
                                 </div>
-                                <div class="space-x-2">
-                                    <a href="{{ route('user.destinations.show', $destination->slug) }}"
-                                       class="inline-block bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
-                                        Detail
-                                    </a>
-                                    <button class="inline-block bg-forest-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-forest-700 transition book-btn"
-                                            data-destination-id="{{ $destination->id }}"
-                                            data-destination-name="{{ $destination->name }}">
-                                        Pesan
-                                    </button>
-                                </div>
+                                <a href="{{ route('user.destinations.show', $destination->slug) }}"
+                                   class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
+                                    Detail
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -186,7 +187,7 @@
                 </div>
             @else
                 <!-- Empty State -->
-                <div class="text-center py-12">
+                <div class="text-center py-12 bg-white rounded-xl shadow-sm">
                     <i class="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
                     <h3 class="text-xl font-bold text-gray-600 mb-2">Tidak ada destinasi ditemukan</h3>
                     <p class="text-gray-500 mb-6">Coba ubah filter pencarian Anda</p>
@@ -198,72 +199,51 @@
         </div>
     </div>
 </div>
-
-<!-- Mobile Filter Modal -->
-<div id="mobileFilterModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden lg:hidden">
-    <div class="fixed right-0 top-0 h-full w-80 bg-white overflow-y-auto">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Filter</h3>
-                <button id="closeMobileFilter" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <!-- Filter form will be moved here by JavaScript -->
-        </div>
-    </div>
-</div>
+@endsection
 
 @push('scripts')
 <script>
-    // Mobile Filter Toggle
-    document.getElementById('mobileFilterToggle').addEventListener('click', function() {
-        document.getElementById('mobileFilterModal').classList.remove('hidden');
-        // Move filter form to modal
-        const filterForm = document.getElementById('filterForm').cloneNode(true);
-        document.querySelector('#mobileFilterModal .p-6').appendChild(filterForm);
-    });
-
-    document.getElementById('closeMobileFilter').addEventListener('click', function() {
-        document.getElementById('mobileFilterModal').classList.add('hidden');
-    });
-
-    // Auto-submit form when some filters change
+    // Auto-submit form when sort changes
     document.addEventListener('DOMContentLoaded', function() {
-        const autoSubmitElements = document.querySelectorAll('select[name="sort"]');
-        autoSubmitElements.forEach(element => {
-            element.addEventListener('change', function() {
-                document.getElementById('filterForm').submit();
+        const sortSelects = document.querySelectorAll('select[name="sort"]');
+        sortSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
             });
         });
     });
 
-    // Favorite functionality
-    document.querySelectorAll('.favorite-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const destinationId = this.dataset.destinationId;
-            toggleFavorite(destinationId, this);
+    // Favorite toggle with AJAX
+    document.querySelectorAll('.favorite-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const button = this.querySelector('button');
+            const icon = button.querySelector('i');
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'text-red-500');
+                } else {
+                    icon.classList.remove('fas', 'text-red-500');
+                    icon.classList.add('far');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
-
-    // Booking functionality
-    document.querySelectorAll('.book-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const destinationId = this.dataset.destinationId;
-            const destinationName = this.dataset.destinationName;
-            showBookingModal(destinationId, destinationName);
-        });
-    });
-
-    function toggleFavorite(destinationId, button) {
-        // Implement favorite toggle logic here
-        console.log('Toggle favorite for destination:', destinationId);
-    }
-
-    function showBookingModal(destinationId, destinationName) {
-        // Implement booking modal logic here
-        alert(`Memesan: ${destinationName}`);
-    }
 </script>
 @endpush
-@endsection
