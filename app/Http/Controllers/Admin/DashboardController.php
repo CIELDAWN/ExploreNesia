@@ -59,7 +59,7 @@ class DashboardController extends Controller
         } else {
             $monthColumn = DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month');
         }
-        
+
         $booking_trend = Booking::select(
                 $monthColumn,
                 DB::raw('count(*) as total')
