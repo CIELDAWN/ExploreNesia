@@ -43,8 +43,14 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Popular destinations
-        $popular_destinations = Destination::withCount('reviews')
+        // Popular destinations - Fixed query
+        $popular_destinations = Destination::select('destinations.*')
+            ->selectRaw('COUNT(reviews.id) as reviews_count')
+            ->leftJoin('reviews', function($join) {
+                $join->on('reviews.reviewable_id', '=', 'destinations.id')
+                     ->where('reviews.reviewable_type', '=', 'App\Models\Destination');
+            })
+            ->groupBy('destinations.id')
             ->orderBy('view_count', 'desc')
             ->take(5)
             ->get();
@@ -52,16 +58,9 @@ class DashboardController extends Controller
         // Category statistics
         $category_stats = Category::withCount('destinations')->get();
 
-        // Monthly booking trend (last 6 months) - Database agnostic
-        $connection = DB::getDriverName();
-        if ($connection === 'pgsql') {
-            $monthColumn = DB::raw('DATE_TRUNC(\'month\', created_at) as month');
-        } else {
-            $monthColumn = DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month');
-        }
-
+        // Monthly booking trend (last 6 months)
         $booking_trend = Booking::select(
-                $monthColumn,
+                DB::raw("DATE_TRUNC('month', created_at) as month"),
                 DB::raw('count(*) as total')
             )
             ->where('created_at', '>=', now()->subMonths(6))

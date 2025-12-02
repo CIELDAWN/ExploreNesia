@@ -9,62 +9,98 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    /**
+     * Display a listing of categories
+     */
     public function index()
     {
-        $categories = Category::latest()->paginate(15);
+        $categories = Category::withCount('destinations')
+            ->latest()
+            ->paginate(10);
+
         return view('admin.categories.index', compact('categories'));
     }
 
+    /**
+     * Show the form for creating a new category
+     */
     public function create()
     {
         return view('admin.categories.create');
     }
 
+    /**
+     * Store a newly created category
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories',
-            'icon' => 'nullable|string|max:50',
+            'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
+            'icon' => 'required|string|max:50',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+
         Category::create($validated);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil dibuat.');
+            ->with('success', 'Kategori berhasil ditambahkan!');
     }
 
+    /**
+     * Display the specified category
+     */
     public function show(Category $category)
     {
+        $category->load(['destinations' => function($query) {
+            $query->latest()->take(10);
+        }]);
+
         return view('admin.categories.show', compact('category'));
     }
 
+    /**
+     * Show the form for editing the specified category
+     */
     public function edit(Category $category)
     {
         return view('admin.categories.edit', compact('category'));
     }
 
+    /**
+     * Update the specified category
+     */
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'icon' => 'nullable|string|max:50',
             'description' => 'nullable|string',
+            'icon' => 'required|string|max:50',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+
         $category->update($validated);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil diperbarui.');
+            ->with('success', 'Kategori berhasil diperbarui!');
     }
 
+    /**
+     * Remove the specified category
+     */
     public function destroy(Category $category)
     {
+        // Check if category has destinations
+        if ($category->destinations()->count() > 0) {
+            return redirect()->route('admin.categories.index')
+                ->with('error', 'Kategori tidak dapat dihapus karena masih memiliki destinasi!');
+        }
+
         $category->delete();
+
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil dihapus.');
+            ->with('success', 'Kategori berhasil dihapus!');
     }
 }
-
