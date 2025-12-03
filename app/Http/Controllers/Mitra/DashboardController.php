@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mitra;
 use App\Models\Province;
 use App\Models\City;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -52,7 +53,8 @@ class DashboardController extends Controller
                 ->with('info', 'Data bisnis Anda sudah ada.');
         }
 
-        return view('mitra.create');
+        $tags = Tag::orderBy('name')->get();
+        return view('mitra.create', compact('tags'));
     }
 
     public function store(Request $request)
@@ -110,7 +112,26 @@ class DashboardController extends Controller
             $data['thumbnail'] = $request->file('thumbnail')->store('mitra/thumbnails', 'public');
         }
 
-        Mitra::create($data);
+        $mitra = Mitra::create($data);
+
+        // Save tags to related business if exists (destination/hotel/restaurant)
+        $tagIds = $request->input('tags', []);
+        if ($mitra->business_type === 'wisata') {
+            $destination = \App\Models\Destination::where('user_id', $user->id)->first();
+            if ($destination) {
+                $destination->tags()->sync($tagIds);
+            }
+        } elseif ($mitra->business_type === 'hotel') {
+            $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
+            if ($hotel) {
+                $hotel->tags()->sync($tagIds);
+            }
+        } elseif ($mitra->business_type === 'restoran') {
+            $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
+            if ($restaurant) {
+                $restaurant->tags()->sync($tagIds);
+            }
+        }
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil disimpan! Menunggu persetujuan admin.');
@@ -126,7 +147,28 @@ class DashboardController extends Controller
                 ->with('error', 'Data bisnis tidak ditemukan.');
         }
 
-        return view('mitra.edit', compact('mitra'));
+        $tags = Tag::orderBy('name')->get();
+        
+        // Get current tags from related business (destination/hotel/restaurant)
+        $businessTags = [];
+        if ($mitra->business_type === 'wisata') {
+            $destination = \App\Models\Destination::where('user_id', $user->id)->first();
+            if ($destination) {
+                $businessTags = $destination->tags->pluck('id')->toArray();
+            }
+        } elseif ($mitra->business_type === 'hotel') {
+            $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
+            if ($hotel) {
+                $businessTags = $hotel->tags->pluck('id')->toArray();
+            }
+        } elseif ($mitra->business_type === 'restoran') {
+            $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
+            if ($restaurant) {
+                $businessTags = $restaurant->tags->pluck('id')->toArray();
+            }
+        }
+
+        return view('mitra.edit', compact('mitra', 'tags', 'businessTags'));
     }
 
     public function update(Request $request)
@@ -187,6 +229,25 @@ class DashboardController extends Controller
         }
 
         $mitra->update($data);
+
+        // Update tags for related business (destination/hotel/restaurant)
+        $tagIds = $request->input('tags', []);
+        if ($mitra->business_type === 'wisata') {
+            $destination = \App\Models\Destination::where('user_id', $user->id)->first();
+            if ($destination) {
+                $destination->tags()->sync($tagIds);
+            }
+        } elseif ($mitra->business_type === 'hotel') {
+            $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
+            if ($hotel) {
+                $hotel->tags()->sync($tagIds);
+            }
+        } elseif ($mitra->business_type === 'restoran') {
+            $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
+            if ($restaurant) {
+                $restaurant->tags()->sync($tagIds);
+            }
+        }
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil diperbarui!');

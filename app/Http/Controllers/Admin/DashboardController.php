@@ -38,7 +38,7 @@ class DashboardController extends Controller
             ->get();
 
         // Recent reviews
-        $recent_reviews = Review::with(['user', 'reviewable'])
+        $recent_reviews = Review::with(['user', 'destination'])
             ->latest()
             ->take(5)
             ->get();
@@ -46,10 +46,8 @@ class DashboardController extends Controller
         // Popular destinations - Fixed query
         $popular_destinations = Destination::select('destinations.*')
             ->selectRaw('COUNT(reviews.id) as reviews_count')
-            ->leftJoin('reviews', function($join) {
-                $join->on('reviews.reviewable_id', '=', 'destinations.id')
-                     ->where('reviews.reviewable_type', '=', 'App\Models\Destination');
-            })
+            ->leftJoin('reviews', 'reviews.destination_id', '=', 'destinations.id')
+            ->whereNull('destinations.deleted_at')
             ->groupBy('destinations.id')
             ->orderBy('view_count', 'desc')
             ->take(5)

@@ -12,7 +12,7 @@ class NewReviewNotification extends Notification
 
     public function __construct(protected Review $review)
     {
-        $this->review->loadMissing(['user', 'reviewable']);
+        $this->review->loadMissing(['user', 'destination']);
     }
 
     public function via(object $notifiable): array
@@ -22,7 +22,7 @@ class NewReviewNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
-        $reviewableName = $this->review->reviewable->name ?? 'Konten Anda';
+        $reviewableName = $this->review->destination->name ?? 'Konten Anda';
 
         return [
             'title' => 'Ulasan Baru',

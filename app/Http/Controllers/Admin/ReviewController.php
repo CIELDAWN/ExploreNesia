@@ -10,7 +10,7 @@ class ReviewController extends Controller
 {
     public function index()
     {
-        $reviews = Review::with(['user', 'reviewable'])
+        $reviews = Review::with(['user', 'destination'])
             ->latest()
             ->paginate(15);
         return view('admin.reviews.index', compact('reviews'));
@@ -18,7 +18,7 @@ class ReviewController extends Controller
 
     public function show(Review $review)
     {
-        $review->load(['user', 'reviewable']);
+        $review->load(['user', 'destination']);
         return view('admin.reviews.show', compact('review'));
     }
 

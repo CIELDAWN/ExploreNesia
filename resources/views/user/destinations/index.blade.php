@@ -63,6 +63,28 @@
                         </div>
                     </div>
 
+                    <!-- Tags Filter -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                        <div class="max-h-64 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-3">
+                            @php
+                                $selectedTags = is_array(request('tags')) ? request('tags') : (request('tags') ? [request('tags')] : []);
+                            @endphp
+                            @foreach($tags as $tag)
+                                <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition">
+                                    <input type="checkbox" name="tags[]" value="{{ $tag->id }}"
+                                           {{ in_array($tag->id, $selectedTags) ? 'checked' : '' }}
+                                           class="w-4 h-4 rounded border-gray-300 text-ocean-600 focus:ring-ocean-500 cursor-pointer">
+                                    <span class="ml-2 text-sm text-gray-700 flex items-center cursor-pointer">
+                                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $tag->color ?? '#3B82F6' }}"></span>
+                                        {{ $tag->name }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Pilih satu atau lebih tags untuk filter</p>
+                    </div>
+
                     <!-- Sort Options -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Urutkan</label>
@@ -152,6 +174,23 @@
                             <p class="text-gray-600 text-sm mb-4 line-clamp-2">
                                 {{ Str::limit(strip_tags($destination->description), 100) }}
                             </p>
+
+                            <!-- Tags -->
+                            @if($destination->tags->count() > 0)
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    @foreach($destination->tags->take(3) as $tag)
+                                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
+                                              style="background-color: {{ $tag->color ?? '#3B82F6' }}">
+                                            {{ $tag->name }}
+                                        </span>
+                                    @endforeach
+                                    @if($destination->tags->count() > 3)
+                                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
+                                            +{{ $destination->tags->count() - 3 }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
 
                             <!-- Stats -->
                             <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">

@@ -130,6 +130,31 @@
             </div>
         </div>
 
+        <!-- Tags Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tags <span class="text-gray-500 text-xs">(Pilih tags yang sesuai dengan bisnis Anda)</span></label>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+                @php
+                    $selectedTags = old('tags', []);
+                    if (!is_array($selectedTags)) {
+                        $selectedTags = [];
+                    }
+                @endphp
+                @foreach($tags ?? [] as $tag)
+                    <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition">
+                        <input type="checkbox" name="tags[]" value="{{ $tag->id }}"
+                               {{ in_array($tag->id, $selectedTags) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-gray-300 text-ocean-600 focus:ring-ocean-500 cursor-pointer">
+                        <span class="ml-2 text-sm text-gray-700 flex items-center cursor-pointer">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $tag->color ?? '#3B82F6' }}"></span>
+                            {{ $tag->name }}
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Pilih satu atau lebih tags yang menggambarkan bisnis Anda</p>
+        </div>
+
         <!-- Submit Button -->
         <div class="flex justify-between items-center pt-6 border-t">
             <a href="{{ route('mitra.dashboard') }}" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">

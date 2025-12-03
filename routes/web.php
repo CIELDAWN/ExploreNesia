@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DestinationController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\AnalyticsController;
 
@@ -85,6 +86,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Category Management
     // ========================================
     Route::resource('categories', CategoryController::class);
+
+    // ========================================
+    // Tag Management
+    // ========================================
+    Route::resource('tags', TagController::class);
 
     // ========================================
     // Destination Management

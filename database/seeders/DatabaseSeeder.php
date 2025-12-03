@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             ProvinceSeeder::class,
             CitySeeder::class,
             CategorySeeder::class,
+            TagSeeder::class,
             DestinationSeeder::class,
             HotelSeeder::class,
             RestaurantSeeder::class,

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Destination;
 use App\Models\Category;
 use App\Models\City;
+use App\Models\Tag;
 
 class DestinationController extends Controller
 {
@@ -43,6 +44,16 @@ class DestinationController extends Controller
             $query->where('entrance_fee', '<=', $request->max_price);
         }
 
+        // Filter by tags (multiple tags - OR logic: must have at least one selected tag)
+        if ($request->has('tags')) {
+            $tagIds = is_array($request->tags) ? array_filter($request->tags) : [];
+            if (count($tagIds) > 0) {
+                $query->whereHas('tags', function($q) use ($tagIds) {
+                    $q->whereIn('tags.id', $tagIds);
+                });
+            }
+        }
+
         // Sorting
         $sort = $request->get('sort', 'latest');
         switch ($sort) {
@@ -62,18 +73,21 @@ class DestinationController extends Controller
                 $query->latest();
         }
 
-        $destinations = $query->paginate(12);
+        $destinations = $query->with('tags')->paginate(12);
         $categories = Category::all();
 
         // Jika cities table sudah ada data, ambil semua
         $cities = City::all();
+        
+        // Get all tags for filter
+        $tags = Tag::orderBy('name')->get();
 
-        return view('user.destinations.index', compact('destinations', 'categories', 'cities'));
+        return view('user.destinations.index', compact('destinations', 'categories', 'cities', 'tags'));
     }
 
     public function show($slug)
     {
-        $destination = Destination::with(['city', 'category'])
+        $destination = Destination::with(['city', 'category', 'tags'])
             ->where('slug', $slug)
             ->where('status', 'approved')
             ->where('is_active', true)
