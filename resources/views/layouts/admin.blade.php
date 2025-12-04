@@ -147,19 +147,14 @@
                 <span class="font-medium">Kategori</span>
             </a>
             
-            <a href="{{ route('admin.destinations.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('admin.destinations.*') ? 'active text-white' : '' }}">
-                <i class="fas fa-map-marked-alt w-5"></i>
-                <span class="font-medium">Destinasi Wisata</span>
-            </a>
-            
-            <a href="{{ route('admin.hotels.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('admin.hotels.*') ? 'active text-white' : '' }}">
-                <i class="fas fa-hotel w-5"></i>
-                <span class="font-medium">Hotel</span>
-            </a>
-            
-            <a href="{{ route('admin.restaurants.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('admin.restaurants.*') ? 'active text-white' : '' }}">
-                <i class="fas fa-utensils w-5"></i>
-                <span class="font-medium">Restoran</span>
+            <a href="{{ route('admin.mitra-submissions.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('admin.mitra-submissions.*') ? 'active text-white' : '' }}">
+                <i class="fas fa-building w-5"></i>
+                <span class="font-medium">Manajemen Mitra</span>
+                @if(\App\Models\Destination::where('status', 'pending')->count() + \App\Models\Hotel::where('status', 'pending')->count() + \App\Models\Restaurant::where('status', 'pending')->count() > 0)
+                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {{ \App\Models\Destination::where('status', 'pending')->count() + \App\Models\Hotel::where('status', 'pending')->count() + \App\Models\Restaurant::where('status', 'pending')->count() }}
+                </span>
+                @endif
             </a>
             
             <a href="{{ route('admin.reviews.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('admin.reviews.*') ? 'active text-white' : '' }}">
