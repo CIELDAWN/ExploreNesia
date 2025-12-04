@@ -5,8 +5,6 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\Destination;
-use App\Models\Hotel;
-use App\Models\Restaurant;
 use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
@@ -17,7 +15,7 @@ class FavoriteController extends Controller
     public function index()
     {
         $favorites = auth()->user()->favorites()
-            ->with('favoritable')
+            ->with('destination')
             ->latest()
             ->get();
 
@@ -30,14 +28,12 @@ class FavoriteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'favoritable_type' => 'required|string',
-            'favoritable_id' => 'required|integer',
+            'destination_id' => 'required|integer|exists:destinations,id',
         ]);
 
         // Check if already favorited
         $exists = Favorite::where('user_id', auth()->id())
-            ->where('favoritable_type', $request->favoritable_type)
-            ->where('favoritable_id', $request->favoritable_id)
+            ->where('destination_id', $request->destination_id)
             ->exists();
 
         if ($exists) {
@@ -46,8 +42,7 @@ class FavoriteController extends Controller
 
         Favorite::create([
             'user_id' => auth()->id(),
-            'favoritable_type' => $request->favoritable_type,
-            'favoritable_id' => $request->favoritable_id,
+            'destination_id' => $request->destination_id,
         ]);
 
         return back()->with('success', 'Berhasil ditambahkan ke favorites!');
@@ -73,13 +68,11 @@ class FavoriteController extends Controller
     public function toggle(Request $request)
     {
         $request->validate([
-            'favoritable_type' => 'required|string',
-            'favoritable_id' => 'required|integer',
+            'destination_id' => 'required|integer|exists:destinations,id',
         ]);
 
         $favorite = Favorite::where('user_id', auth()->id())
-            ->where('favoritable_type', $request->favoritable_type)
-            ->where('favoritable_id', $request->favoritable_id)
+            ->where('destination_id', $request->destination_id)
             ->first();
 
         if ($favorite) {
@@ -91,8 +84,7 @@ class FavoriteController extends Controller
         } else {
             Favorite::create([
                 'user_id' => auth()->id(),
-                'favoritable_type' => $request->favoritable_type,
-                'favoritable_id' => $request->favoritable_id,
+                'destination_id' => $request->destination_id,
             ]);
             return response()->json([
                 'status' => 'added',

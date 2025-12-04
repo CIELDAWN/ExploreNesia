@@ -38,13 +38,14 @@ class DashboardController extends Controller
             ->get();
 
         // Recent reviews
-        $recent_reviews = Review::with(['user', 'reviewable'])
+        $recent_reviews = Review::with(['user', 'destination'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Popular destinations - Simple query without join
-        $popular_destinations = Destination::orderBy('view_count', 'desc')
+        // Popular destinations
+        $popular_destinations = Destination::withCount('reviews')
+            ->orderBy('view_count', 'desc')
             ->take(5)
             ->get();
 

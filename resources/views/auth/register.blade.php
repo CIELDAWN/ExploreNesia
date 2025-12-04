@@ -211,7 +211,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('register.submit') }}" method="POST">
+                    <form action="{{ route('register') }}" method="POST">
                         @csrf
 
                         <!-- Nama Lengkap -->

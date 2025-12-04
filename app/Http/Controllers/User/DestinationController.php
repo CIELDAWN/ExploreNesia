@@ -5,15 +5,25 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Destination;
+use App\Models\Mitra;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Tag;
+use App\Services\MitraBusinessSynchronizer;
 
 class DestinationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Destination::with(['city', 'category'])
+        // Pastikan bisnis mitra yang sudah ada ikut tersinkron ke destinasi
+        if (Destination::count() === 0) {
+            Mitra::all()->each(function (Mitra $mitra) {
+                MitraBusinessSynchronizer::sync($mitra);
+            });
+        }
+
+        // Hanya tampilkan destinasi wisata (bukan hotel/restoran) yang sudah di-approve
+        $query = Destination::with(['city', 'category', 'tags'])
             ->where('status', 'approved')
             ->where('is_active', true);
 
@@ -26,7 +36,7 @@ class DestinationController extends Controller
             });
         }
 
-        // Filter by category
+        // Filter by kategori destinasi
         if ($request->has('category') && $request->category != '') {
             $query->where('category_id', $request->category);
         }
@@ -73,7 +83,7 @@ class DestinationController extends Controller
                 $query->latest();
         }
 
-        $destinations = $query->with('tags')->paginate(12);
+        $destinations = $query->paginate(12)->appends($request->query());
         $categories = Category::all();
 
         // Jika cities table sudah ada data, ambil semua
@@ -100,8 +110,7 @@ class DestinationController extends Controller
         $isFavorite = false;
         if (auth()->check()) {
             $isFavorite = auth()->user()->favorites()
-                ->where('favoritable_type', Destination::class)
-                ->where('favoritable_id', $destination->id)
+                ->where('destination_id', $destination->id)
                 ->exists();
         }
 

@@ -13,11 +13,20 @@ use Illuminate\Support\Facades\Auth;
 class RegisterController extends Controller
 {
     /**
-     * Tampilkan form register
+     * Tampilkan form register.
      */
     public function showRegisterForm()
     {
         return view('auth.register');
+    }
+
+    /**
+     * Menjaga kompatibilitas dengan route bawaan Laravel yang
+     * memanggil showRegistrationForm().
+     */
+    public function showRegistrationForm()
+    {
+        return $this->showRegisterForm();
     }
 
     /**

@@ -8,8 +8,15 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\User\FavoriteController;
+use App\Http\Controllers\User\BookingController as UserBookingController;
 use App\Http\Controllers\User\DestinationController as UserDestinationController;
+use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\HotelController as UserHotelController;
+use App\Http\Controllers\User\RestaurantController as UserRestaurantController;
+use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
+use App\Http\Controllers\Mitra\BookingController as MitraBookingController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Mitra;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +34,7 @@ Route::get('/', function () {
         } elseif ($user->isMitra()) {
             return redirect()->route('mitra.dashboard');
         } else {
-            return redirect()->route('home');
+            return redirect()->route('user.dashboard');
         }
     }
     return view('welcome');
@@ -74,16 +81,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Mitra Routes - Protected by auth and mitra middleware (Coming soon)
 Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('mitra.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [MitraDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/create', [MitraDashboardController::class, 'create'])->name('create');
+    Route::post('/store', [MitraDashboardController::class, 'store'])->name('store');
+    Route::get('/edit', [MitraDashboardController::class, 'edit'])->name('edit');
+    Route::put('/update', [MitraDashboardController::class, 'update'])->name('update');
+    Route::get('/bookings', [MitraBookingController::class, 'index'])->name('bookings.index');
 });
 
 // User Routes - Protected by auth (Basic user access)
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('user.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
     
     Route::get('/profile', function () {
         return view('user.profile');
@@ -92,6 +100,9 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     // Destinations
     Route::get('/destinations', [UserDestinationController::class, 'index'])->name('destinations');
     Route::get('/destinations/{slug}', [UserDestinationController::class, 'show'])->name('destinations.show');
+    Route::post('/destinations/{slug}/book', [UserBookingController::class, 'store'])->name('destinations.book');
+    Route::get('/hotels/{slug}', [UserHotelController::class, 'show'])->name('hotels.show');
+    Route::get('/restaurants/{slug}', [UserRestaurantController::class, 'show'])->name('restaurants.show');
     
     // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');

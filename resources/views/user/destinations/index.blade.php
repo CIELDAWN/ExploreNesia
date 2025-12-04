@@ -102,8 +102,8 @@
                         <button type="submit" class="w-full bg-ocean-600 text-white py-3 rounded-lg font-semibold hover:bg-ocean-700 transition duration-200">
                             Terapkan Filter
                         </button>
-                        <a href="{{ route('user.destinations') }}" class="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-200">
-                            Reset Filter
+                    <a href="{{ route('user.destinations', array_merge(request()->except(['page']), ['business_type' => $businessType ?? 'destination', 'search' => null, 'category' => null, 'city' => null, 'min_price' => null, 'max_price' => null, 'tags' => null, 'sort' => 'latest'])) }}" class="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-200">
+                        Reset Filter
                         </a>
                     </div>
                 </form>
@@ -146,10 +146,9 @@
                                 @auth
                                 <form action="{{ route('user.favorites.toggle') }}" method="POST" class="favorite-form">
                                     @csrf
-                                    <input type="hidden" name="favoritable_type" value="App\Models\Destination">
-                                    <input type="hidden" name="favoritable_id" value="{{ $destination->id }}">
+                                    <input type="hidden" name="destination_id" value="{{ $destination->id }}">
                                     <button type="submit" class="favorite-btn text-gray-400 hover:text-red-500 transition">
-                                        @if(auth()->user()->favorites()->where('favoritable_type', 'App\Models\Destination')->where('favoritable_id', $destination->id)->exists())
+                                        @if(auth()->user()->favorites()->where('destination_id', $destination->id)->exists())
                                             <i class="fas fa-heart text-red-500"></i>
                                         @else
                                             <i class="far fa-heart"></i>

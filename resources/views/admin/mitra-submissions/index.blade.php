@@ -2,7 +2,7 @@
 
 @section('title', 'Manajemen Mitra')
 @section('page-title', 'Manajemen Mitra')
-@section('page-subtitle', 'Kelola semua pengajuan dari mitra (Destinasi, Hotel, Restoran)')
+@section('page-subtitle', 'Kelola semua pengajuan bisnis mitra (Destinasi, Hotel, Restoran, Bisnis Mandiri)')
 
 @section('content')
 
@@ -58,7 +58,7 @@
 </div>
 
 <!-- Secondary Stats -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
         <div class="w-10 h-10 rounded-lg bg-ocean-100 flex items-center justify-center">
             <i class="fas fa-map-marked-alt text-ocean-600"></i>
@@ -84,6 +84,15 @@
         <div>
             <p class="text-sm text-gray-600">Restoran</p>
             <p class="text-xl font-bold text-gray-900">{{ $stats['restaurants'] }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <i class="fas fa-briefcase text-blue-600"></i>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Bisnis Mitra</p>
+            <p class="text-xl font-bold text-gray-900">{{ $stats['mitras'] }}</p>
         </div>
     </div>
 </div>
@@ -120,6 +129,10 @@
                     <a href="{{ route('admin.mitra-submissions.index', ['type' => 'restaurant', 'status' => $status]) }}" 
                        class="px-4 py-2 rounded-lg font-medium transition {{ $type == 'restaurant' ? 'bg-earth-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                         <i class="fas fa-utensils mr-2"></i>Restoran
+                    </a>
+                    <a href="{{ route('admin.mitra-submissions.index', ['type' => 'mitra', 'status' => $status]) }}" 
+                       class="px-4 py-2 rounded-lg font-medium transition {{ $type == 'mitra' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                        <i class="fas fa-briefcase mr-2"></i>Mitra
                     </a>
                 </div>
             </div>

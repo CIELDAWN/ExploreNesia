@@ -165,11 +165,10 @@
                 Aktivitas
             </div>
 
-            <div class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 opacity-50">
+            <a href="{{ route('mitra.bookings.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.bookings.*') ? 'active text-white' : '' }}">
                 <i class="fas fa-calendar-check w-5"></i>
                 <span class="font-medium">Pemesanan</span>
-                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Segera</span>
-            </div>
+            </a>
 
             <div class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 opacity-50">
                 <i class="fas fa-star w-5"></i>

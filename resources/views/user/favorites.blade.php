@@ -35,39 +35,13 @@
             <div>
                 <p class="text-sm text-gray-600">Destinasi</p>
                 <p class="text-2xl font-bold text-gray-900">
-                    {{ $favorites->where('favoritable_type', 'App\Models\Destination')->count() }}
+                    {{ $favorites->count() }}
                 </p>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-forest-500">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg bg-forest-100 flex items-center justify-center">
-                <i class="fas fa-hotel text-forest-600 text-xl"></i>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Hotel</p>
-                <p class="text-2xl font-bold text-gray-900">
-                    {{ $favorites->where('favoritable_type', 'App\Models\Hotel')->count() }}
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-earth-500">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg bg-earth-100 flex items-center justify-center">
-                <i class="fas fa-utensils text-earth-600 text-xl"></i>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Restoran</p>
-                <p class="text-2xl font-bold text-gray-900">
-                    {{ $favorites->where('favoritable_type', 'App\Models\Restaurant')->count() }}
-                </p>
-            </div>
-        </div>
-    </div>
+    <!-- Untuk saat ini favorites hanya untuk destinasi -->
 </div>
 
 <!-- Favorites List -->

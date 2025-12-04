@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Models\Hotel;
 use App\Models\Restaurant;
+use App\Models\Mitra;
 use Illuminate\Http\Request;
+use App\Services\MitraBusinessSynchronizer;
 
 class MitraSubmissionController extends Controller
 {
@@ -58,6 +60,26 @@ class MitraSubmissionController extends Controller
         }
 
         // Get Restaurants
+        // Get Mitra Businesses
+        if ($type == 'all' || $type == 'mitra') {
+            $mitras = Mitra::with(['user', 'city'])
+                ->when($status != 'all', function($query) use ($status) {
+                    $query->where('status', $status);
+                })
+                ->latest()
+                ->get()
+                ->map(function($item) {
+                    $item->submission_type = 'mitra';
+                    $item->type_label = 'Bisnis Mitra';
+                    $item->type_icon = 'fa-briefcase';
+                    $item->type_color = 'blue';
+                    $item->name = $item->business_name;
+                    $item->description = $item->business_description;
+                    return $item;
+                });
+            $submissions = $submissions->merge($mitras);
+        }
+
         if ($type == 'all' || $type == 'restaurant') {
             $restaurants = Restaurant::with(['user', 'city'])
                 ->when($status != 'all', function($query) use ($status) {
@@ -80,19 +102,23 @@ class MitraSubmissionController extends Controller
 
         // Statistics
         $stats = [
-            'total' => Destination::count() + Hotel::count() + Restaurant::count(),
+            'total' => Destination::count() + Hotel::count() + Restaurant::count() + Mitra::count(),
             'pending' => Destination::where('status', 'pending')->count() + 
                         Hotel::where('status', 'pending')->count() + 
-                        Restaurant::where('status', 'pending')->count(),
+                        Restaurant::where('status', 'pending')->count() +
+                        Mitra::where('status', 'pending')->count(),
             'approved' => Destination::where('status', 'approved')->count() + 
                          Hotel::where('status', 'approved')->count() + 
-                         Restaurant::where('status', 'approved')->count(),
+                         Restaurant::where('status', 'approved')->count() +
+                         Mitra::where('status', 'approved')->count(),
             'rejected' => Destination::where('status', 'rejected')->count() + 
                          Hotel::where('status', 'rejected')->count() + 
-                         Restaurant::where('status', 'rejected')->count(),
+                         Restaurant::where('status', 'rejected')->count() +
+                         Mitra::where('status', 'rejected')->count(),
             'destinations' => Destination::count(),
             'hotels' => Hotel::count(),
             'restaurants' => Restaurant::count(),
+            'mitras' => Mitra::count(),
         ];
 
         return view('admin.mitra-submissions.index', compact('submissions', 'stats', 'type', 'status'));
@@ -114,6 +140,10 @@ class MitraSubmissionController extends Controller
             'rejection_reason' => null,
         ]);
 
+        if ($type === 'mitra') {
+            MitraBusinessSynchronizer::sync($submission);
+        }
+
         return back()->with('success', ucfirst($type) . ' berhasil disetujui!');
     }
 
@@ -123,7 +153,7 @@ class MitraSubmissionController extends Controller
     public function reject(Request $request)
     {
         $request->validate([
-            'type' => 'required|in:destination,hotel,restaurant',
+            'type' => 'required|in:destination,hotel,restaurant,mitra',
             'id' => 'required|integer',
             'reason' => 'required|string|min:10',
         ]);
@@ -135,6 +165,10 @@ class MitraSubmissionController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->reason,
         ]);
+
+        if ($request->type === 'mitra') {
+            MitraBusinessSynchronizer::sync($submission);
+        }
 
         return back()->with('success', ucfirst($request->type) . ' berhasil ditolak!');
     }
@@ -149,6 +183,10 @@ class MitraSubmissionController extends Controller
 
         $model = $this->getModel($type);
         $submission = $model::findOrFail($id);
+        if ($type === 'mitra') {
+            MitraBusinessSynchronizer::deleteLinkedListing($submission);
+        }
+
         $submission->delete();
 
         return back()->with('success', 'Submission berhasil dihapus!');
@@ -163,6 +201,7 @@ class MitraSubmissionController extends Controller
             'destination' => Destination::class,
             'hotel' => Hotel::class,
             'restaurant' => Restaurant::class,
+            'mitra' => Mitra::class,
             default => throw new \Exception('Invalid submission type'),
         };
     }

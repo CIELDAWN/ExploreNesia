@@ -9,6 +9,7 @@ use App\Models\City;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\MitraBusinessSynchronizer;
 
 class DashboardController extends Controller
 {
@@ -37,7 +38,9 @@ class DashboardController extends Controller
             abort(403, 'Akses ditolak. Anda bukan mitra.');
         }
         
-        $mitra = $user->mitra;
+        $mitra = $user->mitra()
+            ->with(['city', 'province'])
+            ->first();
 
         // Tampilkan dashboard dengan atau tanpa data mitra
         return view('mitra.dashboard', compact('mitra'));
@@ -114,24 +117,8 @@ class DashboardController extends Controller
 
         $mitra = Mitra::create($data);
 
-        // Save tags to related business if exists (destination/hotel/restaurant)
         $tagIds = $request->input('tags', []);
-        if ($mitra->business_type === 'wisata') {
-            $destination = \App\Models\Destination::where('user_id', $user->id)->first();
-            if ($destination) {
-                $destination->tags()->sync($tagIds);
-            }
-        } elseif ($mitra->business_type === 'hotel') {
-            $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
-            if ($hotel) {
-                $hotel->tags()->sync($tagIds);
-            }
-        } elseif ($mitra->business_type === 'restoran') {
-            $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
-            if ($restaurant) {
-                $restaurant->tags()->sync($tagIds);
-            }
-        }
+        MitraBusinessSynchronizer::sync($mitra, $tagIds);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil disimpan! Menunggu persetujuan admin.');
@@ -230,24 +217,8 @@ class DashboardController extends Controller
 
         $mitra->update($data);
 
-        // Update tags for related business (destination/hotel/restaurant)
         $tagIds = $request->input('tags', []);
-        if ($mitra->business_type === 'wisata') {
-            $destination = \App\Models\Destination::where('user_id', $user->id)->first();
-            if ($destination) {
-                $destination->tags()->sync($tagIds);
-            }
-        } elseif ($mitra->business_type === 'hotel') {
-            $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
-            if ($hotel) {
-                $hotel->tags()->sync($tagIds);
-            }
-        } elseif ($mitra->business_type === 'restoran') {
-            $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
-            if ($restaurant) {
-                $restaurant->tags()->sync($tagIds);
-            }
-        }
+        MitraBusinessSynchronizer::sync($mitra, $tagIds);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil diperbarui!');
