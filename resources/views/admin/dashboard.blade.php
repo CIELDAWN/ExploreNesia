@@ -7,13 +7,13 @@
 @section('content')
 
 <!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-grid">
     <!-- Total Users -->
     <div class="stat-card bg-white rounded-xl shadow-sm p-6 border-l-4 border-ocean-500">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Total Pengguna</p>
-                <h3 class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_users']) }}</h3>
+                <h3 class="text-3xl font-bold text-gray-900" data-stat="total_users">{{ number_format($stats['total_users']) }}</h3>
                 <p class="text-xs text-green-600 mt-2">
                     <i class="fas fa-arrow-up mr-1"></i> User aktif
                 </p>
@@ -29,10 +29,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Destinasi Wisata</p>
-                <h3 class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_destinations']) }}</h3>
+                <h3 class="text-3xl font-bold text-gray-900" data-stat="total_destinations">{{ number_format($stats['total_destinations']) }}</h3>
                 @if($stats['pending_destinations'] > 0)
                 <p class="text-xs text-orange-600 mt-2">
-                    <i class="fas fa-clock mr-1"></i> {{ $stats['pending_destinations'] }} menunggu
+                    <i class="fas fa-clock mr-1"></i> <span data-stat="pending_destinations">{{ $stats['pending_destinations'] }}</span> menunggu
                 </p>
                 @endif
             </div>
@@ -47,7 +47,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Total Pemesanan</p>
-                <h3 class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_bookings']) }}</h3>
+                <h3 class="text-3xl font-bold text-gray-900" data-stat="total_bookings">{{ number_format($stats['total_bookings']) }}</h3>
                 <p class="text-xs text-blue-600 mt-2">
                     <i class="fas fa-calendar-check mr-1"></i> Semua waktu
                 </p>
@@ -63,7 +63,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Total Ulasan</p>
-                <h3 class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_reviews']) }}</h3>
+                <h3 class="text-3xl font-bold text-gray-900" data-stat="total_reviews">{{ number_format($stats['total_reviews']) }}</h3>
                 <p class="text-xs text-yellow-600 mt-2">
                     <i class="fas fa-star mr-1"></i> Feedback pengguna
                 </p>
@@ -84,7 +84,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-600">Total Hotel</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['total_hotels'] }}</p>
+                <p class="text-2xl font-bold text-gray-900" data-stat="total_hotels">{{ $stats['total_hotels'] }}</p>
             </div>
         </div>
     </div>
@@ -96,7 +96,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-600">Total Restoran</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['total_restaurants'] }}</p>
+                <p class="text-2xl font-bold text-gray-900" data-stat="total_restaurants">{{ $stats['total_restaurants'] }}</p>
             </div>
         </div>
     </div>
@@ -108,7 +108,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-600">Total Mitra</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['total_mitra'] }}</p>
+                <p class="text-2xl font-bold text-gray-900" data-stat="total_mitra">{{ $stats['total_mitra'] }}</p>
             </div>
         </div>
     </div>
@@ -176,7 +176,7 @@
                 Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>
-        <div class="space-y-3">
+        <div class="space-y-3" id="recent-bookings-content">
             @forelse($recent_bookings as $booking)
             <div class="flex items-center gap-4 p-3 border border-gray-100 rounded-lg hover:border-ocean-200 transition">
                 <div class="w-10 h-10 rounded-full bg-forest-100 flex items-center justify-center">
@@ -208,7 +208,7 @@
                 Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>
-        <div class="space-y-3">
+        <div class="space-y-3" id="recent-reviews-content">
             @forelse($recent_reviews as $review)
             <div class="p-3 border border-gray-100 rounded-lg hover:border-yellow-200 transition">
                 <div class="flex items-start gap-3 mb-2">
@@ -237,3 +237,105 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+// Auto-refresh dashboard data setiap 30 detik
+let refreshInterval;
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('id-ID').format(num);
+}
+
+function updateDashboardStats() {
+    fetch('{{ route('admin.dashboard') }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update all statistics with data attributes
+        const statElements = document.querySelectorAll('[data-stat]');
+        statElements.forEach(element => {
+            const statName = element.getAttribute('data-stat');
+            const newElement = doc.querySelector(`[data-stat="${statName}"]`);
+            if (newElement && element.textContent !== newElement.textContent) {
+                // Add animation effect
+                element.classList.add('animate-pulse');
+                element.textContent = newElement.textContent;
+                setTimeout(() => {
+                    element.classList.remove('animate-pulse');
+                }, 500);
+            }
+        });
+
+        // Update recent bookings
+        const newBookingsContent = doc.querySelector('#recent-bookings-content');
+        const currentBookingsContent = document.querySelector('#recent-bookings-content');
+        if (newBookingsContent && currentBookingsContent) {
+            if (newBookingsContent.innerHTML !== currentBookingsContent.innerHTML) {
+                currentBookingsContent.classList.add('opacity-50');
+                setTimeout(() => {
+                    currentBookingsContent.innerHTML = newBookingsContent.innerHTML;
+                    currentBookingsContent.classList.remove('opacity-50');
+                }, 200);
+            }
+        }
+
+        // Update recent reviews
+        const newReviewsContent = doc.querySelector('#recent-reviews-content');
+        const currentReviewsContent = document.querySelector('#recent-reviews-content');
+        if (newReviewsContent && currentReviewsContent) {
+            if (newReviewsContent.innerHTML !== currentReviewsContent.innerHTML) {
+                currentReviewsContent.classList.add('opacity-50');
+                setTimeout(() => {
+                    currentReviewsContent.innerHTML = newReviewsContent.innerHTML;
+                    currentReviewsContent.classList.remove('opacity-50');
+                }, 200);
+            }
+        }
+
+        console.log('Dashboard updated:', new Date().toLocaleTimeString('id-ID'));
+    })
+    .catch(error => {
+        console.log('Auto-refresh error:', error);
+    });
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial message
+    console.log('Auto-refresh aktif - Update setiap 30 detik');
+
+    // Set interval for auto-refresh
+    refreshInterval = setInterval(updateDashboardStats, 30000); // 30 seconds
+
+    // Show notification on first load
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-ocean-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3';
+    notification.innerHTML = `
+        <i class="fas fa-sync-alt animate-spin"></i>
+        <span>Auto-refresh aktif</span>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+});
+
+// Clear interval when leaving page
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+@endpush

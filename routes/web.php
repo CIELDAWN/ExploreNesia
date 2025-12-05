@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MitraSubmissionController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\User\FavoriteController;
 use App\Http\Controllers\User\BookingController as UserBookingController;
 use App\Http\Controllers\User\DestinationController as UserDestinationController;
@@ -47,7 +48,7 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    
+
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 });
@@ -56,29 +57,43 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 
 // Admin Routes - Protected by auth and admin middleware
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // User Management
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    
+
     // Category Management
     Route::resource('categories', CategoryController::class);
-    
+
     // Mitra Submissions Management (Unified: Destinations, Hotels, Restaurants)
     Route::get('mitra-submissions', [MitraSubmissionController::class, 'index'])->name('mitra-submissions.index');
     Route::post('mitra-submissions/approve', [MitraSubmissionController::class, 'approve'])->name('mitra-submissions.approve');
     Route::post('mitra-submissions/reject', [MitraSubmissionController::class, 'reject'])->name('mitra-submissions.reject');
     Route::post('mitra-submissions/destroy', [MitraSubmissionController::class, 'destroy'])->name('mitra-submissions.destroy');
-    
+
     // Review Management
     Route::resource('reviews', ReviewController::class)->only(['index', 'show', 'destroy']);
     Route::patch('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
-    
+    Route::get('reviews/stats/realtime', [ReviewController::class, 'getRealtimeStats'])->name('reviews.stats.realtime');
+
     // Analytics & Reports
     Route::get('analytics', [DashboardController::class, 'analytics'])->name('analytics');
+    // Analytics API Endpoints (untuk AJAX)
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/realtime-stats', [AnalyticsController::class, 'getRealtimeStats'])
+            ->name('realtime-stats');
+        Route::get('/booking-trend', [AnalyticsController::class, 'getBookingTrend'])
+            ->name('booking-trend');
+        Route::get('/revenue-stats', [AnalyticsController::class, 'getRevenueStats'])
+            ->name('revenue-stats');
+        Route::get('/top-mitra', [AnalyticsController::class, 'getTopMitra'])
+            ->name('top-mitra');
+        Route::get('/recent-activities', [AnalyticsController::class, 'getRecentActivities'])
+            ->name('recent-activities');
+    });
     Route::get('reports', [DashboardController::class, 'reports'])->name('reports');
 });
 
@@ -102,11 +117,11 @@ Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(fun
 // User Routes - Protected by auth (Basic user access)
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::get('/profile', function () {
         return view('user.profile');
     })->name('profile');
-    
+
     // Destinations & Bookings
     Route::get('/destinations', [UserDestinationController::class, 'index'])->name('destinations');
     Route::get('/destinations/{slug}', [UserDestinationController::class, 'show'])->name('destinations.show');
@@ -114,7 +129,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::get('/hotels/{slug}', [UserHotelController::class, 'show'])->name('hotels.show');
 
     Route::get('/restaurants/{slug}', [UserRestaurantController::class, 'show'])->name('restaurants.show');
-    
+
     // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites', [FavoriteController::class, 'store'])->name('favorites.store');
