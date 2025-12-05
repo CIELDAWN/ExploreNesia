@@ -55,9 +55,9 @@
 <body class="bg-gray-50">
     <div class="min-h-screen flex">
         <!-- Left Side - Image/Branding -->
-        <div class="hidden lg:flex lg:w-1/2 gradient-ocean relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 gradient-ocean relative overflow-hidden items-center justify-center">
             <div class="absolute inset-0 bg-black opacity-20"></div>
-            <div class="relative z-10 flex flex-col justify-center items-center text-white p-12">
+            <div class="relative z-10 flex flex-col items-center text-white p-12">
                 <div class="animate-float mb-8">
                     <i class="fas fa-plane-departure text-8xl opacity-90"></i>
                 </div>
@@ -156,6 +156,20 @@
                         </div>
                     </div>
                     @endif
+
+                    <!-- Login with Google -->
+                    <div class="mb-6">
+                        <a href="{{ route('login.google') }}" class="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
+                            <span>Masuk dengan Google</span>
+                        </a>
+                    </div>
+
+                    <div class="flex items-center mb-6">
+                        <div class="flex-1 h-px bg-gray-200"></div>
+                        <span class="px-3 text-xs text-gray-400 uppercase tracking-wide">atau login dengan email</span>
+                        <div class="flex-1 h-px bg-gray-200"></div>
+                    </div>
 
                     <form action="{{ route('login') }}" method="POST">
                         @csrf

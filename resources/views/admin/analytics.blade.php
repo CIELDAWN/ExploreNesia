@@ -401,8 +401,8 @@ async function loadRealtimeStats() {
         document.getElementById('mitra-approved').textContent = data.mitra_approved;
         document.getElementById('mitra-rejected').textContent = data.mitra_rejected;
 
-        // Update reviews
-        document.getElementById('reviews-pending-badge').textContent = data.reviews_pending + ' pending';
+        // Update reviews (tanpa konsep pending/approved)
+        document.getElementById('reviews-pending-badge').textContent = data.total_reviews + ' ulasan';
         document.getElementById('average-rating').textContent = data.average_rating;
 
         // Update today's stats

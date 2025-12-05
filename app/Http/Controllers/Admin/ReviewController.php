@@ -17,15 +17,6 @@ class ReviewController extends Controller
     {
         $query = Review::with(['user', 'destination', 'booking']);
 
-        // Filter by approval status
-        if ($request->filled('status')) {
-            if ($request->status === 'approved') {
-                $query->approved();
-            } elseif ($request->status === 'pending') {
-                $query->pending();
-            }
-        }
-
         // Filter by rating
         if ($request->filled('rating')) {
             $query->withRating($request->rating);
@@ -69,8 +60,6 @@ class ReviewController extends Controller
         // Statistics
         $stats = [
             'total' => Review::count(),
-            'approved' => Review::approved()->count(),
-            'pending' => Review::pending()->count(),
             'avg_rating' => round(Review::avg('rating'), 1),
             'rating_distribution' => [
                 5 => Review::withRating(5)->count(),
@@ -100,32 +89,6 @@ class ReviewController extends Controller
     }
 
     /**
-     * Approve a review
-     */
-    public function approve(Review $review)
-    {
-        try {
-            DB::beginTransaction();
-
-            $review->update([
-                'is_approved' => true,
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
-
-            // Update mitra rating statistics
-            $this->updateMitraRating($review);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Ulasan berhasil disetujui!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyetujui ulasan: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Remove the specified review
      */
     public function destroy(Review $review)
@@ -133,13 +96,10 @@ class ReviewController extends Controller
         try {
             DB::beginTransaction();
 
-            $wasApproved = $review->is_approved;
             $review->delete();
 
-            // Update mitra rating if review was approved
-            if ($wasApproved) {
-                $this->updateMitraRating($review);
-            }
+            // Setelah dihapus, hitung ulang rating mitra berdasarkan semua review yang tersisa
+            $this->updateMitraRating($review);
 
             DB::commit();
 
@@ -165,14 +125,13 @@ class ReviewController extends Controller
                      ->first();
 
         if ($mitra) {
-            // Calculate new rating statistics
-            $approvedReviews = Review::where('destination_id', $review->destination_id)
-                                    ->where('business_name', $review->business_name)
-                                    ->approved()
-                                    ->get();
+            // Hitung ulang rating berdasarkan semua review yang terkait (tanpa status approve)
+            $allReviews = Review::where('destination_id', $review->destination_id)
+                                ->where('business_name', $review->business_name)
+                                ->get();
 
-            $totalReviews = $approvedReviews->count();
-            $avgRating = $totalReviews > 0 ? round($approvedReviews->avg('rating'), 1) : 0;
+            $totalReviews = $allReviews->count();
+            $avgRating = $totalReviews > 0 ? round($allReviews->avg('rating'), 1) : 0;
 
             $mitra->update([
                 'average_rating' => $avgRating,

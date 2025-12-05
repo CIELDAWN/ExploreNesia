@@ -42,12 +42,12 @@ class AnalyticsController extends Controller
             'bookings_completed' => Booking::where('status', 'completed')->count(),
             'bookings_cancelled' => Booking::where('status', 'cancelled')->count(),
 
-            // Reviews Status
-            'reviews_approved' => Review::where('is_approved', true)->count(),
-            'reviews_pending' => Review::where('is_approved', false)->count(),
+            // Reviews metrics (tanpa status persetujuan admin)
+            // Semua ulasan langsung dihitung dalam statistik
+            'reviews_pending' => 0,
 
-            // Average Rating
-            'average_rating' => round(Review::where('is_approved', true)->avg('rating') ?? 0, 1),
+            // Average Rating dari semua ulasan
+            'average_rating' => round(Review::avg('rating') ?? 0, 1),
 
             // Today's Stats
             'today_bookings' => Booking::whereDate('created_at', today())->count(),
@@ -122,21 +122,35 @@ class AnalyticsController extends Controller
     {
         $limit = $request->get('limit', 5);
 
-        $topMitra = Mitra::where('status', 'approved')
-            ->orderBy('average_rating', 'desc')
-            ->orderBy('total_reviews', 'desc')
+        // Hitung top mitra berdasarkan agregat ulasan di tabel reviews,
+        // lalu padankan dengan data Mitra yang berstatus approved.
+        $reviewAggregates = Review::select(
+                'business_name',
+                'business_type',
+                DB::raw('AVG(rating) as average_rating'),
+                DB::raw('COUNT(*) as total_reviews')
+            )
+            ->groupBy('business_name', 'business_type')
+            ->orderByDesc('average_rating')
+            ->orderByDesc('total_reviews')
             ->limit($limit)
-            ->get()
-            ->map(function($mitra) {
-                return [
-                    'id' => $mitra->id,
-                    'business_name' => $mitra->business_name,
-                    'business_type' => $mitra->business_type,
-                    'average_rating' => $mitra->average_rating ?? 0,
-                    'total_reviews' => $mitra->total_reviews ?? 0,
-                    'thumbnail' => $mitra->thumbnail,
-                ];
-            });
+            ->get();
+
+        $topMitra = $reviewAggregates->map(function ($row) {
+            $mitra = Mitra::where('business_name', $row->business_name)
+                ->where('business_type', $row->business_type)
+                ->where('status', 'approved')
+                ->first();
+
+            return [
+                'id' => $mitra?->id,
+                'business_name' => $row->business_name,
+                'business_type' => $row->business_type,
+                'average_rating' => round($row->average_rating ?? 0, 1),
+                'total_reviews' => $row->total_reviews ?? 0,
+                'thumbnail' => $mitra?->thumbnail,
+            ];
+        });
 
         return response()->json($topMitra);
     }

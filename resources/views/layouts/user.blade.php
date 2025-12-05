@@ -74,15 +74,15 @@
                 
                 <!-- User Menu -->
                 <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-3">
+                    <a href="{{ route('user.profile') }}" class="flex items-center gap-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition">
                         <div class="w-10 h-10 rounded-full gradient-ocean flex items-center justify-center text-white font-bold">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
-                        <div>
+                        <div class="text-left">
                             <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
                             <p class="text-xs text-gray-500">{{ ucfirst(auth()->user()->role) }}</p>
                         </div>
-                    </div>
+                    </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="text-gray-400 hover:text-red-600 transition">

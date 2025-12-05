@@ -81,6 +81,16 @@ class MitraSubmissionController extends Controller
     }
 
     /**
+     * Tampilkan detail satu pengajuan mitra.
+     */
+    public function show(Mitra $mitra)
+    {
+        $mitra->load(['user', 'city.province']);
+
+        return view('admin.mitra-submissions.show', compact('mitra'));
+    }
+
+    /**
      * Approve submission
      */
     public function approve(Request $request)
@@ -111,7 +121,7 @@ class MitraSubmissionController extends Controller
         $request->validate([
             'type' => 'required|in:destination,hotel,restaurant,mitra',
             'id' => 'required|integer',
-            'reason' => 'required|string|min:10',
+            'reason' => 'required|string|min:3',
         ]);
 
         $model = $this->getModel($request->type);

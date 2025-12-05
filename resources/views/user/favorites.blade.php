@@ -30,18 +30,16 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-ocean-500">
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-lg bg-ocean-100 flex items-center justify-center">
-                <i class="fas fa-map-marked-alt text-ocean-600 text-xl"></i>
+                <i class="fas fa-heart text-ocean-600 text-xl"></i>
             </div>
             <div>
-                <p class="text-sm text-gray-600">Destinasi</p>
+                <p class="text-sm text-gray-600">Total Favorit</p>
                 <p class="text-2xl font-bold text-gray-900">
                     {{ $favorites->count() }}
                 </p>
             </div>
         </div>
     </div>
-
-    <!-- Untuk saat ini favorites hanya untuk destinasi -->
 </div>
 
 <!-- Favorites List -->
@@ -54,23 +52,45 @@
     </div>
 
     @forelse($favorites as $favorite)
+    @php
+        $item = $favorite->favoritable; // Bisa Destination, Hotel, Restaurant, atau null
+        $typeLabel = 'Tidak diketahui';
+        $badgeClasses = 'bg-gray-100 text-gray-700';
+        $iconClass = 'fa-map-marked-alt';
+        $detailRoute = '#';
+
+        if ($item instanceof \App\Models\Destination) {
+            $typeLabel = 'Destinasi';
+            $badgeClasses = 'bg-ocean-100 text-ocean-700';
+            $iconClass = 'fa-map-marked-alt';
+            $detailRoute = route('user.destinations.show', $item->slug);
+        } elseif ($item instanceof \App\Models\Hotel) {
+            $typeLabel = 'Hotel';
+            $badgeClasses = 'bg-forest-100 text-forest-700';
+            $iconClass = 'fa-hotel';
+            $detailRoute = route('user.hotels.show', $item->slug);
+        } elseif ($item instanceof \App\Models\Restaurant) {
+            $typeLabel = 'Restoran';
+            $badgeClasses = 'bg-earth-100 text-earth-700';
+            $iconClass = 'fa-utensils';
+            $detailRoute = route('user.restaurants.show', $item->slug);
+        }
+
+        // Untuk saat ini, rating hanya ditampilkan untuk Destinasi.
+        $hasRatingMethod = $item instanceof \App\Models\Destination && method_exists($item, 'averageRating');
+        $rating = $hasRatingMethod ? $item->averageRating() : 0;
+        $reviewsCount = ($item instanceof \App\Models\Destination && method_exists($item, 'reviewsCount'))
+            ? $item->reviewsCount()
+            : 0;
+    @endphp
+
     <div class="p-6 border-b border-gray-100 hover:bg-gray-50 transition">
         <div class="flex items-start gap-4">
-            <!-- Icon/Image -->
+            <!-- Icon/Image berdasarkan tipe -->
             <div class="flex-shrink-0">
-                @if($favorite->favoritable_type === 'App\Models\Destination')
-                    <div class="w-16 h-16 rounded-lg bg-ocean-100 flex items-center justify-center">
-                        <i class="fas fa-map-marked-alt text-ocean-600 text-2xl"></i>
-                    </div>
-                @elseif($favorite->favoritable_type === 'App\Models\Hotel')
-                    <div class="w-16 h-16 rounded-lg bg-forest-100 flex items-center justify-center">
-                        <i class="fas fa-hotel text-forest-600 text-2xl"></i>
-                    </div>
-                @else
-                    <div class="w-16 h-16 rounded-lg bg-earth-100 flex items-center justify-center">
-                        <i class="fas fa-utensils text-earth-600 text-2xl"></i>
-                    </div>
-                @endif
+                <div class="w-16 h-16 rounded-lg bg-ocean-100 flex items-center justify-center">
+                    <i class="fas {{ $iconClass }} text-ocean-600 text-2xl"></i>
+                </div>
             </div>
 
             <!-- Content -->
@@ -78,44 +98,30 @@
                 <div class="flex items-start justify-between mb-2">
                     <div>
                         <h3 class="text-lg font-bold text-gray-900 mb-1">
-                            {{ $favorite->favoritable->name ?? 'N/A' }}
+                            {{ $item->name ?? 'Data tidak tersedia' }}
                         </h3>
                         <p class="text-sm text-gray-600 mb-2">
                             <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>
-                            {{ $favorite->favoritable->city->name ?? 'N/A' }}
+                            {{ optional(optional($item)->city)->name ?? 'Lokasi tidak tersedia' }}
                         </p>
                     </div>
                     
                     <!-- Type Badge -->
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold
-                        @if($favorite->favoritable_type === 'App\Models\Destination')
-                            bg-ocean-100 text-ocean-700
-                        @elseif($favorite->favoritable_type === 'App\Models\Hotel')
-                            bg-forest-100 text-forest-700
-                        @else
-                            bg-earth-100 text-earth-700
-                        @endif
-                    ">
-                        @if($favorite->favoritable_type === 'App\Models\Destination')
-                            Destinasi
-                        @elseif($favorite->favoritable_type === 'App\Models\Hotel')
-                            Hotel
-                        @else
-                            Restoran
-                        @endif
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $badgeClasses }}">
+                        {{ $typeLabel }}
                     </span>
                 </div>
 
                 <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {{ Str::limit($favorite->favoritable->description ?? '', 150) }}
+                    {{ Str::limit($item->description ?? '', 150) }}
                 </p>
 
                 <!-- Rating -->
-                @if($favorite->favoritable->averageRating())
+                @if($hasRatingMethod && $rating > 0)
                 <div class="flex items-center gap-2 mb-3">
                     <div class="flex text-yellow-400">
                         @for($i = 1; $i <= 5; $i++)
-                            @if($i <= round($favorite->favoritable->averageRating()))
+                            @if($i <= round($rating))
                                 <i class="fas fa-star text-sm"></i>
                             @else
                                 <i class="far fa-star text-sm"></i>
@@ -123,15 +129,15 @@
                         @endfor
                     </div>
                     <span class="text-sm text-gray-600">
-                        {{ number_format($favorite->favoritable->averageRating(), 1) }}
-                        ({{ $favorite->favoritable->reviews_count ?? 0 }} reviews)
+                        {{ number_format($rating, 1) }}
+                        ({{ $reviewsCount }} reviews)
                     </span>
                 </div>
                 @endif
 
                 <!-- Actions -->
                 <div class="flex items-center gap-3">
-                    <a href="#" class="text-sm text-ocean-600 hover:text-ocean-700 font-medium">
+                    <a href="{{ $detailRoute }}" class="text-sm text-ocean-600 hover:text-ocean-700 font-medium">
                         <i class="fas fa-eye mr-1"></i>
                         Lihat Detail
                     </a>
@@ -160,7 +166,7 @@
         </div>
         <h3 class="text-xl font-bold text-gray-900 mb-2">Belum Ada Favorites</h3>
         <p class="text-gray-600 mb-6">Mulai jelajahi destinasi dan tambahkan ke favorites Anda!</p>
-        <a href="{{ route('home') }}" class="inline-block px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition">
+        <a href="{{ route('user.destinations') }}" class="inline-block px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition">
             <i class="fas fa-compass mr-2"></i>
             Jelajahi Destinasi
         </a>

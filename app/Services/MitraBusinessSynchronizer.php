@@ -114,9 +114,8 @@ class MitraBusinessSynchronizer
             'thumbnail'     => $mitra->thumbnail,
         ]);
 
-        // Hanya inisialisasi rentang harga dari reservation_price ketika listing pertama kali dibuat
-        // atau ketika kedua nilai harga belum diisi. Jangan timpa rentang harga yang sudah diatur.
-        if (!$restaurant->exists || (is_null($restaurant->average_price_min) && is_null($restaurant->average_price_max))) {
+        // Selalu sinkronkan rentang harga dari reservation_price terbaru bila ada.
+        if (!is_null($mitra->reservation_price)) {
             $restaurant->average_price_min = $mitra->reservation_price;
             $restaurant->average_price_max = $mitra->reservation_price;
         }

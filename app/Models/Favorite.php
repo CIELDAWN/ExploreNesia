@@ -12,6 +12,9 @@ class Favorite extends Model
 
     protected $fillable = [
         'user_id',
+        'favoritable_id',
+        'favoritable_type',
+        // destination_id dibiarkan untuk kompatibilitas lama
         'destination_id',
     ];
 
@@ -24,8 +27,14 @@ class Favorite extends Model
     }
 
     /**
-     * Relasi ke Destination
+     * Relasi polymorphic ke item yang difavoritkan (destinasi / hotel / restoran)
      */
+    public function favoritable()
+    {
+        return $this->morphTo();
+    }
+
+    // Relasi lama khusus destinasi (untuk kompatibilitas)
     public function destination(): BelongsTo
     {
         return $this->belongsTo(Destination::class);

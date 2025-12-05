@@ -169,11 +169,24 @@
                                     @endif
                                 </span>
                                 @auth
+                                @php
+                                    $type = $currentType === 'hotel' ? 'hotel' : ($currentType === 'restaurant' ? 'restaurant' : 'destination');
+                                    $modelClass = [
+                                        'destination' => App\Models\Destination::class,
+                                        'hotel' => App\Models\Hotel::class,
+                                        'restaurant' => App\Models\Restaurant::class,
+                                    ][$type];
+                                    $isFavorited = auth()->user()->favorites()
+                                        ->where('favoritable_type', $modelClass)
+                                        ->where('favoritable_id', $item->id)
+                                        ->exists();
+                                @endphp
                                 <form action="{{ route('user.favorites.toggle') }}" method="POST" class="favorite-form">
                                     @csrf
-                                    <input type="hidden" name="destination_id" value="{{ $item->id }}">
+                                    <input type="hidden" name="type" value="{{ $type }}">
+                                    <input type="hidden" name="id" value="{{ $item->id }}">
                                     <button type="submit" class="favorite-btn text-gray-400 hover:text-red-500 transition">
-                                        @if(auth()->user()->favorites()->where('destination_id', $item->id)->exists())
+                                        @if($isFavorited)
                                             <i class="fas fa-heart text-red-500"></i>
                                         @else
                                             <i class="far fa-heart"></i>

@@ -235,12 +235,19 @@ class DashboardController extends Controller
             $data['thumbnail'] = $request->file('thumbnail')->store('mitra/thumbnails', 'public');
         }
 
+        // Jika sebelumnya ditolak, ubah menjadi pending saat mitra memperbarui data
+        if ($mitra->status === 'rejected') {
+            $data['status'] = 'pending';
+            $data['rejection_reason'] = null;
+        }
+
         $mitra->update($data);
 
-        // Tags akan diterapkan saat listing publik dibuat/setelah disetujui admin
+        // Sinkronkan perubahan ke listing publik (destinations/hotels/restaurants)
         $tagIds = $request->input('tags', []);
+        \App\Services\MitraBusinessSynchronizer::sync($mitra, $tagIds);
 
         return redirect()->route('mitra.dashboard')
-            ->with('success', 'Data bisnis berhasil diperbarui!');
+            ->with('success', 'Data bisnis berhasil diperbarui dan disinkronkan ke halaman pengguna!');
     }
 }

@@ -13,7 +13,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'phone', 'address', 'avatar', 'is_active'
+        'name', 'email', 'password', 'role', 'phone', 'address', 'avatar', 'is_active',
+        'province_id', 'city_id',
     ];
 
     protected $hidden = [
@@ -28,6 +29,15 @@ class User extends Authenticatable
     // Relationships
 
     // Legacy relationships (akan dihapus nanti)
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
     public function destinations()
     {
         return $this->hasMany(Destination::class);

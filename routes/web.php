@@ -16,6 +16,7 @@ use App\Http\Controllers\User\ReviewController as UserReviewController;
 use App\Http\Controllers\User\TripController as UserTripController;
 use App\Http\Controllers\User\HotelController as UserHotelController;
 use App\Http\Controllers\User\RestaurantController as UserRestaurantController;
+use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
 use App\Http\Controllers\Mitra\BookingController as MitraBookingController;
 use App\Http\Controllers\Mitra\ReviewController as MitraReviewController;
@@ -38,7 +39,7 @@ Route::get('/', function () {
         } elseif ($user->isMitra()) {
             return redirect()->route('mitra.dashboard');
         } else {
-            return redirect()->route('user.dashboard');
+            return redirect()->route('user.home');
         }
     }
     return view('welcome');
@@ -51,6 +52,10 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+
+    // Login dengan Google
+    Route::get('/login/google', [LoginController::class, 'redirectToGoogle'])->name('login.google');
+    Route::get('/login/google/callback', [LoginController::class, 'handleGoogleCallback'])->name('login.google.callback');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -71,6 +76,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Mitra Submissions Management (Unified: Destinations, Hotels, Restaurants)
     Route::get('mitra-submissions', [MitraSubmissionController::class, 'index'])->name('mitra-submissions.index');
+    Route::get('mitra-submissions/{mitra}', [MitraSubmissionController::class, 'show'])->name('mitra-submissions.show');
     Route::post('mitra-submissions/approve', [MitraSubmissionController::class, 'approve'])->name('mitra-submissions.approve');
     Route::post('mitra-submissions/reject', [MitraSubmissionController::class, 'reject'])->name('mitra-submissions.reject');
     Route::post('mitra-submissions/destroy', [MitraSubmissionController::class, 'destroy'])->name('mitra-submissions.destroy');
@@ -117,11 +123,11 @@ Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(fun
 
 // User Routes - Protected by auth (Basic user access)
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
+    Route::get('/home', [UserDashboardController::class, 'home'])->name('home');
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/profile', function () {
-        return view('user.profile');
-    })->name('profile');
+    Route::get('/profile', [UserProfileController::class, 'show'])->name('profile');
+    Route::post('/profile', [UserProfileController::class, 'update'])->name('profile.update');
 
     // Destinations & Bookings
     Route::get('/destinations', [UserDestinationController::class, 'index'])->name('destinations');

@@ -240,7 +240,7 @@
                         @endif
 
                         <!-- View Detail -->
-                        <a href="#" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+                        <a href="{{ route('admin.mitra-submissions.show', $submission->id) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
                             <i class="fas fa-eye mr-2"></i>Lihat Detail
                         </a>
 
