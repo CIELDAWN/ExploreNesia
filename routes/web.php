@@ -11,6 +11,8 @@ use App\Http\Controllers\User\FavoriteController;
 use App\Http\Controllers\User\BookingController as UserBookingController;
 use App\Http\Controllers\User\DestinationController as UserDestinationController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\ReviewController as UserReviewController;
+use App\Http\Controllers\User\TripController as UserTripController;
 use App\Http\Controllers\User\HotelController as UserHotelController;
 use App\Http\Controllers\User\RestaurantController as UserRestaurantController;
 use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
@@ -86,7 +88,10 @@ Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(fun
     Route::post('/store', [MitraDashboardController::class, 'store'])->name('store');
     Route::get('/edit', [MitraDashboardController::class, 'edit'])->name('edit');
     Route::put('/update', [MitraDashboardController::class, 'update'])->name('update');
+
     Route::get('/bookings', [MitraBookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings/{booking}/confirm', [MitraBookingController::class, 'confirm'])->name('bookings.confirm');
+    Route::post('/bookings/{booking}/reject', [MitraBookingController::class, 'reject'])->name('bookings.reject');
 });
 
 // User Routes - Protected by auth (Basic user access)
@@ -122,4 +127,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/user/restaurants/{slug}/book', [UserBookingController::class, 'storeRestaurant'])
         ->name('user.restaurants.book');
+
+    // Trip history
+    Route::get('/user/trips', [UserTripController::class, 'index'])->name('user.trips.index');
+    Route::post('/user/trips/{booking}/complete', [UserTripController::class, 'complete'])->name('user.trips.complete');
 });

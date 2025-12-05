@@ -30,6 +30,7 @@
                         <th class="px-4 py-2 text-left font-semibold text-gray-700">Jumlah</th>
                         <th class="px-4 py-2 text-left font-semibold text-gray-700">Total</th>
                         <th class="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">Aksi</th>
                         <th class="px-4 py-2 text-left font-semibold text-gray-700">Dibuat</th>
                     </tr>
                 </thead>
@@ -56,13 +57,39 @@
                                     $statusClasses = match($booking->status) {
                                         'confirmed' => 'bg-green-100 text-green-700',
                                         'completed' => 'bg-blue-100 text-blue-700',
-                                        'cancelled' => 'bg-red-100 text-red-700',
+                                        'rejected' => 'bg-red-100 text-red-700',
                                         default => 'bg-yellow-100 text-yellow-700',
                                     };
                                 @endphp
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusClasses }}">
                                     {{ ucfirst($booking->status) }}
                                 </span>
+
+                                @if($booking->status === 'rejected' && $booking->cancellation_reason)
+                                    <p class="mt-1 text-xs text-red-600">Alasan: {{ $booking->cancellation_reason }}</p>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if($booking->status === 'pending')
+                                    <div class="flex items-center gap-2">
+                                        <form action="{{ route('mitra.bookings.confirm', $booking) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white hover:bg-green-600">
+                                                <i class="fas fa-check mr-1"></i>Terima
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('mitra.bookings.reject', $booking) }}" method="POST" onsubmit="return confirmReject(this);">
+                                            @csrf
+                                            <input type="hidden" name="reason" value="">
+                                            <button type="submit" class="px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600">
+                                                <i class="fas fa-times mr-1"></i>Tolak
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-gray-400">Tidak ada aksi</span>
+                                @endif
                             </td>
                             <td class="px-4 py-2 text-xs text-gray-500">
                                 {{ $booking->created_at->diffForHumans() }}
@@ -79,7 +106,15 @@
     @endif
 </div>
 @endsection
-
-
-
-
+@push('scripts')
+<script>
+    function confirmReject(form) {
+        const reason = prompt('Masukkan alasan penolakan pesanan:');
+        if (!reason) {
+            return false;
+        }
+        form.querySelector('input[name="reason"]').value = reason;
+        return true;
+    }
+</script>
+@endpush

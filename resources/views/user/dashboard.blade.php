@@ -71,7 +71,7 @@
                     <i class="fas fa-heart"></i>
                     Lihat Favorit Saya
                 </a>
-                <a href="#" class="flex items-center gap-3 p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                <a href="{{ route('user.trips.index') }}" class="flex items-center gap-3 p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                     <i class="fas fa-history"></i>
                     Riwayat Perjalanan
                 </a>
