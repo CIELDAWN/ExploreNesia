@@ -40,7 +40,7 @@ class TripController extends Controller
             'status' => 'completed',
         ]);
 
-        // Jika destinasi, arahkan langsung ke form ulasan bila belum ada review
+        // Jika destinasi dan belum ada review, kirim flag ke halaman riwayat
         if ($booking->bookable_type === Destination::class) {
             $exists = Review::where('user_id', $userId)
                 ->where('destination_id', $booking->bookable_id)
@@ -48,11 +48,17 @@ class TripController extends Controller
 
             if (! $exists) {
                 return redirect()
-                    ->route('user.reviews.create', ['destination_id' => $booking->bookable_id])
-                    ->with('success', 'Perjalanan ditandai selesai, silakan berikan ulasan.');
+                    ->route('user.trips.index')
+                    ->with([
+                        'success' => 'Perjalanan ditandai selesai, silakan berikan ulasan.',
+                        'openReviewModalDestinationId' => $booking->bookable_id,
+                        'openReviewModalDestinationName' => optional($booking->bookable)->name,
+                    ]);
             }
         }
 
-        return back()->with('success', 'Perjalanan berhasil ditandai selesai.');
+        return redirect()
+            ->route('user.trips.index')
+            ->with('success', 'Perjalanan berhasil ditandai selesai.');
     }
 }

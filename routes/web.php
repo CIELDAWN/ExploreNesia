@@ -17,6 +17,7 @@ use App\Http\Controllers\User\HotelController as UserHotelController;
 use App\Http\Controllers\User\RestaurantController as UserRestaurantController;
 use App\Http\Controllers\Mitra\DashboardController as MitraDashboardController;
 use App\Http\Controllers\Mitra\BookingController as MitraBookingController;
+use App\Http\Controllers\Mitra\ReviewController as MitraReviewController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Mitra;
 
@@ -92,6 +93,10 @@ Route::middleware(['auth', 'mitra'])->prefix('mitra')->name('mitra.')->group(fun
     Route::get('/bookings', [MitraBookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings/{booking}/confirm', [MitraBookingController::class, 'confirm'])->name('bookings.confirm');
     Route::post('/bookings/{booking}/reject', [MitraBookingController::class, 'reject'])->name('bookings.reject');
+    Route::post('/bookings/{booking}/complete', [MitraBookingController::class, 'complete'])->name('bookings.complete');
+
+    // Reviews for this mitra's business
+    Route::get('/reviews', [MitraReviewController::class, 'index'])->name('reviews.index');
 });
 
 // User Routes - Protected by auth (Basic user access)
@@ -115,6 +120,15 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::post('/favorites', [FavoriteController::class, 'store'])->name('favorites.store');
     Route::delete('/favorites/{id}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+    // User Reviews
+    Route::get('/reviews', [UserReviewController::class, 'index'])->name('reviews.index');
+    Route::get('/reviews/create', [UserReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/reviews', [UserReviewController::class, 'store'])->name('reviews.store');
+    Route::get('/reviews/{review}', [UserReviewController::class, 'show'])->name('reviews.show');
+    Route::get('/reviews/{review}/edit', [UserReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/reviews/{review}', [UserReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [UserReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 // Booking routes (explicit) - protected by auth middleware

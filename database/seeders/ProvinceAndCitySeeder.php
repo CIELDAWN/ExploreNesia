@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Province;
 use App\Models\City;
+use Illuminate\Support\Facades\DB;
 
 class ProvinceAndCitySeeder extends Seeder
 {
@@ -45,6 +46,25 @@ class ProvinceAndCitySeeder extends Seeder
                     []
                 );
             }
+        }
+
+        // Pastikan sequence ID di PostgreSQL selaras dengan data saat ini
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                SELECT setval(
+                    pg_get_serial_sequence('provinces', 'id'),
+                    COALESCE(MAX(id), 1),
+                    TRUE
+                ) FROM provinces;
+            ");
+
+            DB::statement("
+                SELECT setval(
+                    pg_get_serial_sequence('cities', 'id'),
+                    COALESCE(MAX(id), 1),
+                    TRUE
+                ) FROM cities;
+            ");
         }
 
         $this->command->info('Provinces and cities seeded successfully!');

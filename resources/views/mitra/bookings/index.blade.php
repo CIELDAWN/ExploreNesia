@@ -87,6 +87,13 @@
                                             </button>
                                         </form>
                                     </div>
+                                @elseif($booking->status === 'confirmed')
+                                    <form action="{{ route('mitra.bookings.complete', $booking) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600">
+                                            <i class="fas fa-flag-checkered mr-1"></i>Tandai Selesai
+                                        </button>
+                                    </form>
                                 @else
                                     <span class="text-xs text-gray-400">Tidak ada aksi</span>
                                 @endif

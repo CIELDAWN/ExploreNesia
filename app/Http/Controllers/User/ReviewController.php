@@ -39,28 +39,17 @@ class ReviewController extends Controller
      */
     public function create(Request $request)
     {
-        $destinationId = $request->get('destination_id');
-        $destination = null;
-
-        if ($destinationId) {
-            $destination = Destination::findOrFail($destinationId);
-
-            // Cek apakah user sudah pernah review destinasi ini
-            $existingReview = Review::where('user_id', Auth::id())
-                ->where('destination_id', $destinationId)
-                ->first();
-
-            if ($existingReview) {
-                return redirect()->route('user.reviews.edit', $existingReview->id)
-                    ->with('info', 'Anda sudah pernah memberikan ulasan untuk destinasi ini. Silakan edit ulasan Anda.');
-            }
-        }
+        // Form utama sekarang via popup di riwayat perjalanan berbasis booking,
+        // tapi kita pertahankan halaman create umum untuk kompatibilitas lama.
 
         $destinations = Destination::where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        return view('user.reviews.create', compact('destinations', 'destination'));
+        return view('user.reviews.create', [
+            'destinations' => $destinations,
+            'destination' => null,
+        ]);
     }
 
     /**
@@ -69,15 +58,23 @@ class ReviewController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'destination_id' => 'required|exists:destinations,id',
+            'booking_id' => 'required|exists:bookings,id',
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|min:10|max:1000',
+            'comment' => 'nullable|string|max:1000',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        // Cek apakah user sudah pernah review destinasi ini
-        $existingReview = Review::where('user_id', Auth::id())
-            ->where('destination_id', $validated['destination_id'])
+        $userId = Auth::id();
+
+        // Pastikan booking milik user dan sudah completed
+        $booking = \App\Models\Booking::with('bookable')->where('id', $validated['booking_id'])
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->firstOrFail();
+
+        // Cek apakah user sudah pernah review booking ini
+        $existingReview = Review::where('user_id', $userId)
+            ->where('booking_id', $booking->id)
             ->first();
 
         if ($existingReview) {
@@ -94,25 +91,48 @@ class ReviewController extends Controller
             }
         }
 
+        // Tentukan info bisnis untuk semua jenis (destinasi / hotel / restoran)
+        $destinationId = null;
+        $businessType = null;
+        $businessName = null;
+
+        if ($booking->bookable) {
+            $businessName = $booking->bookable->name ?? null;
+
+            if ($booking->bookable instanceof Destination) {
+                $destinationId = $booking->bookable->id;
+                $businessType = 'destinasi';
+            } elseif ($booking->bookable instanceof \App\Models\Hotel) {
+                $businessType = 'hotel';
+            } elseif ($booking->bookable instanceof \App\Models\Restaurant) {
+                $businessType = 'restoran';
+            }
+        }
+
         $review = Review::create([
-            'user_id' => Auth::id(),
-            'destination_id' => $validated['destination_id'],
+            'user_id' => $userId,
+            'booking_id' => $booking->id,
+            'destination_id' => $destinationId,
             'rating' => $validated['rating'],
-            'comment' => $validated['comment'],
+            'comment' => $validated['comment'] ?? null,
             'images' => $imagePaths,
-            'is_approved' => false
+            'is_approved' => false,
+            'business_type' => $businessType,
+            'business_name' => $businessName,
         ]);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Ulasan berhasil dikirim dan menunggu persetujuan mitra',
+                'message' => 'Ulasan berhasil dikirim.',
                 'data' => $review->load('destination')
             ]);
         }
 
-        return redirect()->route('user.reviews.index')
-            ->with('success', 'Ulasan berhasil dikirim dan menunggu persetujuan mitra');
+        // Setelah mengirim ulasan via popup di riwayat perjalanan,
+        // kembalikan user ke halaman riwayat perjalanan, bukan ke halaman daftar ulasan terpisah
+        return redirect()->route('user.trips.index')
+            ->with('success', 'Ulasan berhasil dikirim.');
     }
 
     /**
@@ -176,13 +196,13 @@ class ReviewController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Ulasan berhasil diperbarui dan menunggu persetujuan kembali',
+                'message' => 'Ulasan berhasil diperbarui.',
                 'data' => $review->load('destination')
             ]);
         }
 
-        return redirect()->route('user.reviews.index')
-            ->with('success', 'Ulasan berhasil diperbarui dan menunggu persetujuan kembali');
+        return redirect()->route('user.trips.index')
+            ->with('success', 'Ulasan berhasil diperbarui.');
     }
 
     /**
@@ -210,8 +230,8 @@ class ReviewController extends Controller
             ]);
         }
 
-        return redirect()->route('user.reviews.index')
-            ->with('success', 'Ulasan berhasil dihapus');
+        return redirect()->route('user.trips.index')
+            ->with('success', 'Ulasan berhasil dihapus.');
     }
 
     /**

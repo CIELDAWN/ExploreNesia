@@ -12,6 +12,7 @@ class Review extends Model
 
     protected $fillable = [
         'user_id',
+        'booking_id',
         'destination_id',
         'rating',
         'comment',
@@ -19,6 +20,8 @@ class Review extends Model
         'is_approved',
         'approved_by',
         'approved_at',
+        'business_type',
+        'business_name',
     ];
 
     protected $casts = [
@@ -33,6 +36,14 @@ class Review extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relasi ke Booking (satu review per booking)
+     */
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     /**

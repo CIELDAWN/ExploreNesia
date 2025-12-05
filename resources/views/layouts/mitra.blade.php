@@ -170,11 +170,10 @@
                 <span class="font-medium">Pemesanan</span>
             </a>
 
-            <div class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 opacity-50">
+            <a href="{{ route('mitra.reviews.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-ocean-50 {{ request()->routeIs('mitra.reviews.*') ? 'active text-white' : '' }}">
                 <i class="fas fa-star w-5"></i>
                 <span class="font-medium">Ulasan</span>
-                <span class="text-xs bg-gray-200 px-2 py-1 rounded">Segera</span>
-            </div>
+            </a>
         </nav>
 
         <!-- User Profile -->

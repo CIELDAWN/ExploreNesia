@@ -46,6 +46,24 @@ class BookingController extends Controller
     }
 
     /**
+     * Tandai booking sebagai selesai oleh mitra.
+     */
+    public function complete(Booking $booking)
+    {
+        $this->authorizeBookingOwner($booking);
+
+        if ($booking->status !== 'confirmed') {
+            return back()->with('error', 'Hanya pemesanan yang sudah dikonfirmasi yang dapat ditandai selesai.');
+        }
+
+        $booking->update([
+            'status' => 'completed',
+        ]);
+
+        return back()->with('success', 'Pemesanan ditandai selesai.');
+    }
+
+    /**
      * Tolak booking dari user dengan alasan.
      */
     public function reject(Request $request, Booking $booking)

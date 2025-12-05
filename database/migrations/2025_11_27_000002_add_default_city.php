@@ -15,32 +15,38 @@ return new class extends Migration
             
             // Only insert if the table has the expected columns
             if (in_array('name', $columns) && in_array('province_id', $columns)) {
-                // First, make sure we have a default province
+                // First, make sure we have a default province (biarkan ID auto-increment)
+                $provinceId = null;
                 if (Schema::hasTable('provinces')) {
-                    DB::table('provinces')->insertOrIgnore([
-                        'id' => 1,
-                        'code' => 'default',
-                        'name' => 'Default Province',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    $provinceId = DB::table('provinces')->where('code', 'default')->value('id');
+
+                    if (! $provinceId) {
+                        $provinceId = DB::table('provinces')->insertGetId([
+                            'code' => 'default',
+                            'name' => 'Default Province',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
 
-                // Then add a default city
-                DB::table('cities')->insertOrIgnore([
-                    'id' => 1,
-                    'name' => 'Default City',
-                    'province_id' => 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                // Then add a default city if we have a province id
+                if ($provinceId) {
+                    DB::table('cities')->updateOrInsert(
+                        ['name' => 'Default City', 'province_id' => $provinceId],
+                        [
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
             }
         }
     }
 
     public function down(): void
     {
-        DB::table('cities')->where('id', 1)->delete();
-        DB::table('provinces')->where('id', 1)->delete();
+        DB::table('cities')->where('name', 'Default City')->delete();
+        DB::table('provinces')->where('code', 'default')->delete();
     }
 };
