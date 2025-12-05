@@ -12,6 +12,16 @@ class Category extends Model
 
     public function destinations()
     {
-        return $this->hasMany(Destination::class);
+        return $this->morphedByMany(Destination::class, 'categorizable');
+    }
+
+    public function hotels()
+    {
+        return $this->morphedByMany(Hotel::class, 'categorizable');
+    }
+
+    public function restaurants()
+    {
+        return $this->morphedByMany(Restaurant::class, 'categorizable');
     }
 }

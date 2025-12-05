@@ -127,10 +127,10 @@
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-sm font-medium text-gray-700">{{ $category->icon }} {{ $category->name }}</span>
-                    <span class="text-sm font-bold text-gray-900">{{ $category->destinations_count }}</span>
+                    <span class="text-sm font-bold text-gray-900">{{ $category->total_businesses }}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="gradient-ocean h-2 rounded-full" style="width: {{ $category_stats->max('destinations_count') > 0 ? ($category->destinations_count / $category_stats->max('destinations_count') * 100) : 0 }}%"></div>
+                    <div class="gradient-ocean h-2 rounded-full" style="width: {{ $category_stats->max('total_businesses') > 0 ? ($category->total_businesses / $category_stats->max('total_businesses') * 100) : 0 }}%"></div>
                 </div>
             </div>
             @endforeach

@@ -79,6 +79,11 @@ class Destination extends Model
         return $this->morphToMany(Tag::class, 'taggable');
     }
 
+    public function categories(): MorphToMany
+    {
+        return $this->morphToMany(Category::class, 'categorizable');
+    }
+
     public function approvedReviews(): HasMany
     {
         return $this->reviews()->where('is_approved', true);
@@ -99,6 +104,13 @@ class Destination extends Model
     public function averageRating(): float
     {
         return round($this->approvedReviews()->avg('rating') ?? 0, 1);
+    }
+
+    public function primaryCategory(): ?Category
+    {
+        $primary = $this->categories()->wherePivot('is_primary', true)->first();
+
+        return $primary ?: $this->categories()->first();
     }
 
     // Helper untuk hitung total review yang approved

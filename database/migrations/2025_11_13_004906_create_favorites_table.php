@@ -11,11 +11,13 @@ return new class extends Migration
         Schema::create('favorites', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('destination_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('favoritable_id');
+            $table->string('favoritable_type');
             $table->timestamps();
 
-            // Pastikan user tidak bisa favorite destinasi yang sama 2x
-            $table->unique(['user_id', 'destination_id']);
+            // Pastikan user tidak bisa favorite item yang sama 2x
+            $table->unique(['user_id', 'favoritable_type', 'favoritable_id'], 'favorites_user_favoritable_unique');
+            $table->index(['favoritable_id', 'favoritable_type']);
         });
     }
 

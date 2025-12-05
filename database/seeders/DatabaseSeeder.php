@@ -12,11 +12,6 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ProvinceAndCitySeeder::class,
             CategorySeeder::class,
-            TagSeeder::class,
-            DestinationSeeder::class,
-            HotelSeeder::class,
-            RestaurantSeeder::class,
-            ReviewSeeder::class,
         ]);
     }
 }

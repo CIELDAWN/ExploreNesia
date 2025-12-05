@@ -12,6 +12,8 @@
                 Jelajahi Hotel Mitra
             @elseif($currentType === 'restaurant')
                 Jelajahi Restoran Mitra
+            @elseif($currentType === 'all')
+                Jelajahi Semua Bisnis Mitra
             @else
                 Jelajahi Destinasi Wisata
             @endif
@@ -21,6 +23,8 @@
                 Temukan hotel pilihan mitra ExploreNesia
             @elseif($currentType === 'restaurant')
                 Temukan restoran pilihan mitra ExploreNesia
+            @elseif($currentType === 'all')
+                Temukan berbagai destinasi wisata, hotel, dan restoran mitra ExploreNesia
             @else
                 Temukan tempat wisata menarik di seluruh Indonesia
             @endif
@@ -47,6 +51,7 @@
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Jenis</label>
                         <select name="business_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
+                            <option value="all" {{ $currentType === 'all' ? 'selected' : '' }}>Semua</option>
                             <option value="destination" {{ $currentType === 'destination' ? 'selected' : '' }}>Wisata Mitra</option>
                             <option value="hotel" {{ $currentType === 'hotel' ? 'selected' : '' }}>Hotel Mitra</option>
                             <option value="restaurant" {{ $currentType === 'restaurant' ? 'selected' : '' }}>Restoran Mitra</option>
@@ -79,26 +84,26 @@
                         </div>
                     </div>
 
-                    <!-- Tags Filter -->
+                    <!-- Categories Filter -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
                         <div class="max-h-64 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-3">
                             @php
-                                $selectedTags = is_array(request('tags')) ? request('tags') : (request('tags') ? [request('tags')] : []);
+                                $selectedCategories = is_array(request('categories')) ? request('categories') : (request('categories') ? [request('categories')] : []);
                             @endphp
-                            @foreach($tags as $tag)
+                            @foreach($categories as $category)
                                 <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition">
-                                    <input type="checkbox" name="tags[]" value="{{ $tag->id }}"
-                                           {{ in_array($tag->id, $selectedTags) ? 'checked' : '' }}
+                                    <input type="checkbox" name="categories[]" value="{{ $category->id }}"
+                                           {{ in_array($category->id, $selectedCategories) ? 'checked' : '' }}
                                            class="w-4 h-4 rounded border-gray-300 text-ocean-600 focus:ring-ocean-500 cursor-pointer">
                                     <span class="ml-2 text-sm text-gray-700 flex items-center cursor-pointer">
-                                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $tag->color ?? '#3B82F6' }}"></span>
-                                        {{ $tag->name }}
+                                        <span class="inline-block w-3 h-3 rounded-full mr-2">{{ $category->icon ?? '📍' }}</span>
+                                        {{ $category->name }}
                                     </span>
                                 </label>
                             @endforeach
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Pilih satu atau lebih tags untuk filter</p>
+                        <p class="text-xs text-gray-500 mt-2">Pilih satu atau lebih kategori untuk filter</p>
                     </div>
 
                     <!-- Sort Options -->
@@ -118,8 +123,8 @@
                         <button type="submit" class="w-full bg-ocean-600 text-white py-3 rounded-lg font-semibold hover:bg-ocean-700 transition duration-200">
                             Terapkan Filter
                         </button>
-                    <a href="{{ route('user.destinations', array_merge(request()->except(['page']), ['business_type' => $businessType ?? 'destination', 'search' => null, 'category' => null, 'city' => null, 'min_price' => null, 'max_price' => null, 'tags' => null, 'sort' => 'latest'])) }}" class="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-200">
-                        Reset Filter
+                        <a href="{{ route('user.destinations', array_merge(request()->except(['page']), ['business_type' => $businessType ?? 'destination', 'search' => null, 'category' => null, 'city' => null, 'min_price' => null, 'max_price' => null, 'categories' => null, 'sort' => 'latest'])) }}" class="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-200">
+                            Reset Filter
                         </a>
                     </div>
                 </form>
@@ -133,7 +138,15 @@
                 <div>
                     <p class="text-gray-600">
                         @php
-                            $label = $currentType === 'hotel' ? 'hotel' : ($currentType === 'restaurant' ? 'restoran' : 'destinasi');
+                            if ($currentType === 'hotel') {
+                                $label = 'hotel';
+                            } elseif ($currentType === 'restaurant') {
+                                $label = 'restoran';
+                            } elseif ($currentType === 'all') {
+                                $label = 'bisnis';
+                            } else {
+                                $label = 'destinasi';
+                            }
                         @endphp
                         Menampilkan <span class="font-semibold">{{ $destinations->firstItem() ?: 0 }}-{{ $destinations->lastItem() ?: 0 }}</span>
                         dari <span class="font-semibold">{{ $destinations->total() }}</span> {{ $label }}
@@ -145,6 +158,11 @@
             @if($destinations->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     @foreach($destinations as $item)
+                    @php
+                        // Tentukan tipe bisnis per item. Saat mode "Semua", controller
+                        // memberikan properti business_type pada setiap item.
+                        $itemType = $item->business_type ?? $currentType;
+                    @endphp
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300">
                         <!-- Image -->
                         @if($item->thumbnail)
@@ -160,17 +178,18 @@
                             <!-- Category Badge & Favorite -->
                             <div class="flex justify-between items-start mb-3">
                                 <span class="inline-block px-3 py-1 bg-ocean-100 text-ocean-700 text-xs font-semibold rounded-full">
-                                    @if($currentType === 'hotel')
+                                    @if($itemType === 'hotel')
                                         <i class="fas fa-hotel mr-1"></i> Hotel Mitra
-                                    @elseif($currentType === 'restaurant')
+                                    @elseif($itemType === 'restaurant')
                                         <i class="fas fa-utensils mr-1"></i> Restoran Mitra
                                     @else
-                                        {{ $item->category->icon ?? '📍' }} {{ $item->category->name ?? 'Wisata Mitra' }}
+                                        {{ optional($item->primaryCategory())->icon ?? ($item->category->icon ?? '📍') }}
+                                {{ optional($item->primaryCategory())->name ?? ($item->category->name ?? 'Wisata Mitra') }}
                                     @endif
                                 </span>
                                 @auth
                                 @php
-                                    $type = $currentType === 'hotel' ? 'hotel' : ($currentType === 'restaurant' ? 'restaurant' : 'destination');
+                                    $type = $itemType === 'hotel' ? 'hotel' : ($itemType === 'restaurant' ? 'restaurant' : 'destination');
                                     $modelClass = [
                                         'destination' => App\Models\Destination::class,
                                         'hotel' => App\Models\Hotel::class,
@@ -212,33 +231,47 @@
                                 {{ Str::limit(strip_tags($item->description), 100) }}
                             </p>
 
-                            <!-- Tags -->
-                            @if($item->tags->count() > 0)
+                            <!-- Categories -->
+                            @if($item->categories->count() > 0)
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    @foreach($item->tags->take(3) as $tag)
-                                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
-                                              style="background-color: {{ $tag->color ?? '#3B82F6' }}">
-                                            {{ $tag->name }}
+                                    @foreach($item->categories->take(3) as $category)
+                                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-ocean-100 text-ocean-700">
+                                            {{ $category->icon ?? '📍' }} {{ $category->name }}
                                         </span>
                                     @endforeach
-                                    @if($item->tags->count() > 3)
+                                    @if($item->categories->count() > 3)
                                         <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
-                                            +{{ $item->tags->count() - 3 }}
+                                            +{{ $item->categories->count() - 3 }}
                                         </span>
                                     @endif
                                 </div>
                             @endif
 
                             <!-- Stats -->
+                            @php
+                                // Hitung rating rata-rata berdasarkan tipe item
+                                if ($itemType === 'hotel' && method_exists($item, 'averageRating')) {
+                                    $rating = $item->averageRating();
+                                } elseif ($itemType === 'restaurant' && method_exists($item, 'averageRating')) {
+                                    $rating = $item->averageRating();
+                                } elseif (method_exists($item, 'averageRating')) {
+                                    $rating = $item->averageRating();
+                                } else {
+                                    $rating = 0;
+                                }
+                            @endphp
                             <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
                                 <span><i class="fas fa-eye mr-1"></i>{{ number_format($item->view_count ?? 0) }}</span>
-                                <span><i class="fas fa-star text-yellow-400 mr-1"></i>4.5</span>
+                                <span>
+                                    <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                    {{ number_format($rating, 1) }}
+                                </span>
                             </div>
 
                             <!-- Price & Action -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    @if($currentType === 'hotel')
+                                    @if($itemType === 'hotel')
                                         @if($item->price_per_night_min > 0)
                                             <span class="text-ocean-600 font-bold text-lg">
                                                 Rp {{ number_format($item->price_per_night_min, 0, ',', '.') }}
@@ -251,7 +284,7 @@
                                         @else
                                             <span class="text-gray-500 text-sm">Harga belum tersedia</span>
                                         @endif
-                                    @elseif($currentType === 'restaurant')
+                                    @elseif($itemType === 'restaurant')
                                         @if($item->average_price_min > 0)
                                             <span class="text-ocean-600 font-bold text-lg">
                                                 Rp {{ number_format($item->average_price_min, 0, ',', '.') }}
@@ -275,12 +308,12 @@
                                         @endif
                                     @endif
                                 </div>
-                                @if($currentType === 'hotel')
+                                @if($itemType === 'hotel')
                                     <a href="{{ route('user.hotels.show', $item->slug) }}"
                                    class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
                                     Detail
                                     </a>
-                                @elseif($currentType === 'restaurant')
+                                @elseif($itemType === 'restaurant')
                                     <a href="{{ route('user.restaurants.show', $item->slug) }}"
                                    class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
                                     Detail
@@ -305,10 +338,21 @@
                 <!-- Empty State -->
                 <div class="text-center py-12 bg-white rounded-xl shadow-sm">
                     <i class="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-bold text-gray-600 mb-2">Tidak ada destinasi ditemukan</h3>
-                    <p class="text-gray-500 mb-6">Coba ubah filter pencarian Anda</p>
-                    <a href="{{ route('user.destinations') }}" class="inline-block bg-ocean-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-ocean-700 transition">
-                        Tampilkan Semua Destinasi
+                    <h3 class="text-xl font-bold text-gray-600 mb-2">Tidak ada hasil ditemukan</h3>
+                    <p class="text-gray-500 mb-6">Coba ubah atau reset filter pencarian Anda</p>
+                    @php
+                        if ($currentType === 'hotel') {
+                            $emptyLabel = 'Tampilkan Semua Hotel';
+                        } elseif ($currentType === 'restaurant') {
+                            $emptyLabel = 'Tampilkan Semua Restoran';
+                        } elseif ($currentType === 'all') {
+                            $emptyLabel = 'Tampilkan Semua Bisnis';
+                        } else {
+                            $emptyLabel = 'Tampilkan Semua Destinasi';
+                        }
+                    @endphp
+                    <a href="{{ route('user.destinations', array_merge(request()->except(['page']), ['business_type' => $currentType, 'search' => null, 'category' => null, 'city' => null, 'min_price' => null, 'max_price' => null, 'categories' => null, 'sort' => 'latest'])) }}" class="inline-block bg-ocean-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-ocean-700 transition">
+                        {{ $emptyLabel }}
                     </a>
                 </div>
             @endif

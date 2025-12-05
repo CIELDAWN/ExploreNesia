@@ -66,8 +66,20 @@ class Restaurant extends Model
         return $this->morphToMany(Tag::class, 'taggable');
     }
 
-    public function averageRating()
+    public function categories(): MorphToMany
     {
-        return $this->reviews()->avg('rating');
+        return $this->morphToMany(Category::class, 'categorizable');
+    }
+
+    public function averageRating(): float
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 1);
+    }
+
+    public function primaryCategory(): ?Category
+    {
+        $primary = $this->categories()->wherePivot('is_primary', true)->first();
+
+        return $primary ?: $this->categories()->first();
     }
 }

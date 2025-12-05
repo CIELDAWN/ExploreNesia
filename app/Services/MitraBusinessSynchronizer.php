@@ -14,12 +14,12 @@ class MitraBusinessSynchronizer
     /**
      * Sinkronkan data bisnis mitra ke tabel publik (destinations/hotels/restaurants).
      */
-    public static function sync(Mitra $mitra, array $tagIds = []): void
+    public static function sync(Mitra $mitra, array $categoryIds = []): void
     {
         match ($mitra->business_type) {
-            'hotel' => self::syncHotel($mitra, $tagIds),
-            'restoran' => self::syncRestaurant($mitra, $tagIds),
-            default => self::syncDestination($mitra, $tagIds),
+            'hotel' => self::syncHotel($mitra, $categoryIds),
+            'restoran' => self::syncRestaurant($mitra, $categoryIds),
+            default => self::syncDestination($mitra, $categoryIds),
         };
     }
 
@@ -35,7 +35,7 @@ class MitraBusinessSynchronizer
         };
     }
 
-    protected static function syncDestination(Mitra $mitra, array $tagIds): void
+    protected static function syncDestination(Mitra $mitra, array $categoryIds): void
     {
         $destination = Destination::firstOrNew(['user_id' => $mitra->user_id]);
 
@@ -60,12 +60,10 @@ class MitraBusinessSynchronizer
         $destination->is_active = $mitra->status === 'approved';
         $destination->save();
 
-        if (!empty($tagIds)) {
-            $destination->tags()->sync($tagIds);
-        }
+        self::syncCategoriesForModel($mitra, $destination, $categoryIds);
     }
 
-    protected static function syncHotel(Mitra $mitra, array $tagIds): void
+    protected static function syncHotel(Mitra $mitra, array $categoryIds): void
     {
         $hotel = Hotel::firstOrNew(['user_id' => $mitra->user_id]);
 
@@ -90,12 +88,10 @@ class MitraBusinessSynchronizer
         $hotel->is_active = $mitra->status === 'approved';
         $hotel->save();
 
-        if (!empty($tagIds)) {
-            $hotel->tags()->sync($tagIds);
-        }
+        self::syncCategoriesForModel($mitra, $hotel, $categoryIds);
     }
 
-    protected static function syncRestaurant(Mitra $mitra, array $tagIds): void
+    protected static function syncRestaurant(Mitra $mitra, array $categoryIds): void
     {
         $restaurant = Restaurant::firstOrNew(['user_id' => $mitra->user_id]);
 
@@ -124,9 +120,7 @@ class MitraBusinessSynchronizer
         $restaurant->is_active = $mitra->status === 'approved';
         $restaurant->save();
 
-        if (!empty($tagIds)) {
-            $restaurant->tags()->sync($tagIds);
-        }
+        self::syncCategoriesForModel($mitra, $restaurant, $categoryIds);
     }
 
     protected static function generateSlug(string $name): string
@@ -142,6 +136,47 @@ class MitraBusinessSynchronizer
             [
                 'name' => 'Wisata Mitra',
                 'description' => 'Destinasi yang dikelola oleh mitra ExploreNesia',
+                'icon' => '📍',
+            ]
+        );
+
+        return $category->id;
+    }
+
+    protected static function syncCategoriesForModel(Mitra $mitra, $model, array $categoryIds): void
+    {
+        $primaryCategoryId = self::primaryCategoryIdForMitra($mitra);
+
+        $allCategoryIds = array_unique(array_filter([
+            ...$categoryIds,
+            $primaryCategoryId,
+        ]));
+
+        if (empty($allCategoryIds)) {
+            return;
+        }
+
+        $pivotData = [];
+        foreach ($allCategoryIds as $id) {
+            $pivotData[$id] = ['is_primary' => $id === $primaryCategoryId];
+        }
+
+        $model->categories()->sync($pivotData);
+    }
+
+    protected static function primaryCategoryIdForMitra(Mitra $mitra): int
+    {
+        $slug = match ($mitra->business_type) {
+            'hotel' => 'hotel',
+            'restoran' => 'restoran',
+            default => 'destinasi',
+        };
+
+        $category = Category::firstOrCreate(
+            ['slug' => $slug],
+            [
+                'name' => ucfirst($slug),
+                'description' => 'Kategori utama untuk ' . $slug,
                 'icon' => '📍',
             ]
         );

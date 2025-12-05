@@ -20,6 +20,7 @@ class Mitra extends Model
         'reservation_price',
         'room_price_single',
         'room_price_double',
+        'selected_categories',
         'province_id',
         'city_id',
         'contact_phone',
@@ -34,7 +35,8 @@ class Mitra extends Model
 
     protected $casts = [
         'average_rating' => 'decimal:1',
-        'total_reviews' => 'integer'
+        'total_reviews' => 'integer',
+        'selected_categories' => 'array',
     ];
 
     // Relationships

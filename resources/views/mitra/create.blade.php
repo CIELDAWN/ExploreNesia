@@ -178,29 +178,29 @@
             </div>
         </div>
 
-        <!-- Tags Selection -->
+        <!-- Categories Selection -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tags <span class="text-gray-500 text-xs">(Pilih tags yang sesuai dengan bisnis Anda)</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Kategori <span class="text-gray-500 text-xs">(Pilih kategori tambahan yang sesuai dengan bisnis Anda)</span></label>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
                 @php
-                    $selectedTags = old('tags', []);
-                    if (!is_array($selectedTags)) {
-                        $selectedTags = [];
+                    $selectedCategories = old('categories', []);
+                    if (!is_array($selectedCategories)) {
+                        $selectedCategories = [];
                     }
                 @endphp
-                @foreach($tags ?? [] as $tag)
+                @foreach($categories ?? [] as $category)
                     <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition">
-                        <input type="checkbox" name="tags[]" value="{{ $tag->id }}"
-                               {{ in_array($tag->id, $selectedTags) ? 'checked' : '' }}
+                        <input type="checkbox" name="categories[]" value="{{ $category->id }}"
+                               {{ in_array($category->id, $selectedCategories) ? 'checked' : '' }}
                                class="w-4 h-4 rounded border-gray-300 text-ocean-600 focus:ring-ocean-500 cursor-pointer">
                         <span class="ml-2 text-sm text-gray-700 flex items-center cursor-pointer">
-                            <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $tag->color ?? '#3B82F6' }}"></span>
-                            {{ $tag->name }}
+                            <span class="inline-block w-3 h-3 rounded-full mr-2">{{ $category->icon ?? '📍' }}</span>
+                            {{ $category->name }}
                         </span>
                     </label>
                 @endforeach
             </div>
-            <p class="text-xs text-gray-500 mt-2">Pilih satu atau lebih tags yang menggambarkan bisnis Anda</p>
+            <p class="text-xs text-gray-500 mt-2">Kategori utama akan ditentukan dari jenis bisnis, kategori di atas bersifat opsional.</p>
         </div>
 
         <!-- Submit Button -->

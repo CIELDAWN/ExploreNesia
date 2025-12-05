@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mitra;
 use App\Models\Province;
 use App\Models\City;
-use App\Models\Tag;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\MitraBusinessSynchronizer;
@@ -56,8 +56,8 @@ class DashboardController extends Controller
                 ->with('info', 'Data bisnis Anda sudah ada.');
         }
 
-        $tags = Tag::orderBy('name')->get();
-        return view('mitra.create', compact('tags'));
+        $categories = Category::orderBy('name')->get();
+        return view('mitra.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -117,6 +117,7 @@ class DashboardController extends Controller
             'reservation_price' => $request->reservation_price,
             'room_price_single' => $request->room_price_single,
             'room_price_double' => $request->room_price_double,
+            'selected_categories' => $request->input('categories', []),
             'status' => 'pending'
         ];
 
@@ -126,9 +127,6 @@ class DashboardController extends Controller
         }
 
         $mitra = Mitra::create($data);
-
-        // Tags akan diterapkan saat listing publik dibuat setelah disetujui admin
-        $tagIds = $request->input('tags', []);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil disimpan! Menunggu persetujuan admin.');
@@ -144,28 +142,28 @@ class DashboardController extends Controller
                 ->with('error', 'Data bisnis tidak ditemukan.');
         }
 
-        $tags = Tag::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
         
-        // Get current tags from related business (destination/hotel/restaurant)
-        $businessTags = [];
+        // Get current categories from related business (destination/hotel/restaurant)
+        $businessCategories = [];
         if ($mitra->business_type === 'wisata') {
             $destination = \App\Models\Destination::where('user_id', $user->id)->first();
             if ($destination) {
-                $businessTags = $destination->tags->pluck('id')->toArray();
+                $businessCategories = $destination->categories->pluck('id')->toArray();
             }
         } elseif ($mitra->business_type === 'hotel') {
             $hotel = \App\Models\Hotel::where('user_id', $user->id)->first();
             if ($hotel) {
-                $businessTags = $hotel->tags->pluck('id')->toArray();
+                $businessCategories = $hotel->categories->pluck('id')->toArray();
             }
         } elseif ($mitra->business_type === 'restoran') {
             $restaurant = \App\Models\Restaurant::where('user_id', $user->id)->first();
             if ($restaurant) {
-                $businessTags = $restaurant->tags->pluck('id')->toArray();
+                $businessCategories = $restaurant->categories->pluck('id')->toArray();
             }
         }
 
-        return view('mitra.edit', compact('mitra', 'tags', 'businessTags'));
+        return view('mitra.edit', compact('mitra', 'categories', 'businessCategories'));
     }
 
     public function update(Request $request)
@@ -241,11 +239,13 @@ class DashboardController extends Controller
             $data['rejection_reason'] = null;
         }
 
+        $categoryIds = $request->input('categories', []);
+        $data['selected_categories'] = $categoryIds;
+
         $mitra->update($data);
 
         // Sinkronkan perubahan ke listing publik (destinations/hotels/restaurants)
-        $tagIds = $request->input('tags', []);
-        \App\Services\MitraBusinessSynchronizer::sync($mitra, $tagIds);
+        \App\Services\MitraBusinessSynchronizer::sync($mitra, $categoryIds);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil diperbarui dan disinkronkan ke halaman pengguna!');

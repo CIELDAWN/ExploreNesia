@@ -107,7 +107,8 @@ class MitraSubmissionController extends Controller
         ]);
 
         if ($type === 'mitra') {
-            MitraBusinessSynchronizer::sync($submission);
+            $categoryIds = is_array($submission->selected_categories) ? $submission->selected_categories : [];
+            MitraBusinessSynchronizer::sync($submission, $categoryIds);
         }
 
         return back()->with('success', ucfirst($type) . ' berhasil disetujui!');
@@ -133,7 +134,8 @@ class MitraSubmissionController extends Controller
         ]);
 
         if ($request->type === 'mitra') {
-            MitraBusinessSynchronizer::sync($submission);
+            $categoryIds = is_array($submission->selected_categories) ? $submission->selected_categories : [];
+            MitraBusinessSynchronizer::sync($submission, $categoryIds);
         }
 
         return back()->with('success', ucfirst($request->type) . ' berhasil ditolak!');

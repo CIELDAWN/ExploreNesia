@@ -49,8 +49,15 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Category statistics
-        $category_stats = Category::withCount('destinations')->get();
+        // Category statistics (total bisnis per kategori dari pivot categorizables)
+        $category_stats = Category::withCount(['destinations', 'hotels', 'restaurants'])
+            ->get()
+            ->map(function ($category) {
+                $category->total_businesses = $category->destinations_count
+                    + $category->hotels_count
+                    + $category->restaurants_count;
+                return $category;
+            });
 
         // Monthly booking trend - Simple version
         $booking_trend = collect(); // Empty collection for now
