@@ -20,7 +20,8 @@ class ProvinceAndCitySeeder extends Seeder
             'Jawa Barat' => ['Bandung', 'Banjar', 'Bekasi', 'Bogor', 'Cimahi', 'Cirebon', 'Depok', 'Sukabumi', 'Tasikmalaya'],
             'Jawa Tengah' => ['Magelang', 'Pekalongan', 'Salatiga', 'Semarang', 'Surakarta (Solo)', 'Tegal'],
             'DI Yogyakarta' => ['Yogyakarta'],
-            'Jawa Timur' => ['Batu', 'Blitar', 'Kediri', 'Madiun', 'Malang', 'Mojokerto', 'Pasuruan', 'Probolinggo', 'Surabaya']
+            'Jawa Timur' => ['Batu', 'Blitar', 'Kediri', 'Madiun', 'Malang', 'Mojokerto', 'Pasuruan', 'Probolinggo', 'Surabaya'],
+            'Bali' => ['Denpasar', 'Jembrana', 'Tabanan', 'Badung', 'Gianyar', 'Klungkung', 'Bangli', 'Karangasem', 'Buleleng']
         ];
 
         $provinceCodes = [
@@ -30,6 +31,7 @@ class ProvinceAndCitySeeder extends Seeder
             'Jawa Tengah' => 'JT',
             'DI Yogyakarta' => 'YK',
             'Jawa Timur' => 'JI',
+            'Bali' => 'BL'
         ];
 
         foreach ($regions as $provinceName => $cities) {
