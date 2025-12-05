@@ -17,108 +17,64 @@ class MitraSubmissionController extends Controller
      */
     public function index(Request $request)
     {
-        $type = $request->get('type', 'all'); // all, destination, hotel, restaurant
+        $type = $request->get('type', 'all');   // all, wisata, hotel, restoran (berbasis mitra)
         $status = $request->get('status', 'all'); // all, pending, approved, rejected
 
-        // Initialize collections
-        $submissions = collect();
+        // Query hanya dari tabel mitras sebagai sumber utama pengajuan
+        $mitrasQuery = Mitra::with(['user', 'city']);
 
-        // Get Destinations
-        if ($type == 'all' || $type == 'destination') {
-            $destinations = Destination::with(['user', 'city', 'category'])
-                ->when($status != 'all', function($query) use ($status) {
-                    $query->where('status', $status);
-                })
-                ->latest()
-                ->get()
-                ->map(function($item) {
-                    $item->submission_type = 'destination';
-                    $item->type_label = 'Destinasi Wisata';
-                    $item->type_icon = 'fa-map-marked-alt';
-                    $item->type_color = 'ocean';
-                    return $item;
-                });
-            $submissions = $submissions->merge($destinations);
+        if ($status !== 'all') {
+            $mitrasQuery->where('status', $status);
         }
 
-        // Get Hotels
-        if ($type == 'all' || $type == 'hotel') {
-            $hotels = Hotel::with(['user', 'city'])
-                ->when($status != 'all', function($query) use ($status) {
-                    $query->where('status', $status);
-                })
-                ->latest()
-                ->get()
-                ->map(function($item) {
-                    $item->submission_type = 'hotel';
-                    $item->type_label = 'Hotel';
-                    $item->type_icon = 'fa-hotel';
-                    $item->type_color = 'forest';
-                    return $item;
-                });
-            $submissions = $submissions->merge($hotels);
+        // Filter jenis bisnis jika diperlukan
+        if (in_array($type, ['wisata', 'hotel', 'restoran'])) {
+            $map = [
+                'wisata' => 'wisata',
+                'hotel' => 'hotel',
+                'restoran' => 'restoran',
+            ];
+            $mitrasQuery->where('business_type', $map[$type]);
         }
 
-        // Get Restaurants
-        // Get Mitra Businesses
-        if ($type == 'all' || $type == 'mitra') {
-            $mitras = Mitra::with(['user', 'city'])
-                ->when($status != 'all', function($query) use ($status) {
-                    $query->where('status', $status);
-                })
-                ->latest()
-                ->get()
-                ->map(function($item) {
-                    $item->submission_type = 'mitra';
-                    $item->type_label = 'Bisnis Mitra';
-                    $item->type_icon = 'fa-briefcase';
-                    $item->type_color = 'blue';
-                    $item->name = $item->business_name;
-                    $item->description = $item->business_description;
-                    return $item;
-                });
-            $submissions = $submissions->merge($mitras);
-        }
+        $submissions = $mitrasQuery
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                $item->submission_type = 'mitra';
+                $item->type_label = match ($item->business_type) {
+                    'hotel' => 'Hotel',
+                    'restoran' => 'Restoran',
+                    'wisata' => 'Destinasi Wisata',
+                    default => 'Bisnis Mitra',
+                };
+                $item->type_icon = match ($item->business_type) {
+                    'hotel' => 'fa-hotel',
+                    'restoran' => 'fa-utensils',
+                    'wisata' => 'fa-map-marked-alt',
+                    default => 'fa-briefcase',
+                };
+                $item->type_color = match ($item->business_type) {
+                    'hotel' => 'forest',
+                    'restoran' => 'earth',
+                    'wisata' => 'ocean',
+                    default => 'blue',
+                };
+                $item->name = $item->business_name;
+                $item->description = $item->business_description;
+                return $item;
+            });
 
-        if ($type == 'all' || $type == 'restaurant') {
-            $restaurants = Restaurant::with(['user', 'city'])
-                ->when($status != 'all', function($query) use ($status) {
-                    $query->where('status', $status);
-                })
-                ->latest()
-                ->get()
-                ->map(function($item) {
-                    $item->submission_type = 'restaurant';
-                    $item->type_label = 'Restoran';
-                    $item->type_icon = 'fa-utensils';
-                    $item->type_color = 'earth';
-                    return $item;
-                });
-            $submissions = $submissions->merge($restaurants);
-        }
-
-        // Sort by created_at descending
-        $submissions = $submissions->sortByDesc('created_at');
-
-        // Statistics
+        // Statistik berdasarkan mitra saja (menghindari duplikasi dari tabel publik)
         $stats = [
-            'total' => Destination::count() + Hotel::count() + Restaurant::count() + Mitra::count(),
-            'pending' => Destination::where('status', 'pending')->count() + 
-                        Hotel::where('status', 'pending')->count() + 
-                        Restaurant::where('status', 'pending')->count() +
-                        Mitra::where('status', 'pending')->count(),
-            'approved' => Destination::where('status', 'approved')->count() + 
-                         Hotel::where('status', 'approved')->count() + 
-                         Restaurant::where('status', 'approved')->count() +
-                         Mitra::where('status', 'approved')->count(),
-            'rejected' => Destination::where('status', 'rejected')->count() + 
-                         Hotel::where('status', 'rejected')->count() + 
-                         Restaurant::where('status', 'rejected')->count() +
-                         Mitra::where('status', 'rejected')->count(),
-            'destinations' => Destination::count(),
-            'hotels' => Hotel::count(),
-            'restaurants' => Restaurant::count(),
-            'mitras' => Mitra::count(),
+            'total'     => Mitra::count(),
+            'pending'   => Mitra::where('status', 'pending')->count(),
+            'approved'  => Mitra::where('status', 'approved')->count(),
+            'rejected'  => Mitra::where('status', 'rejected')->count(),
+            'destinations' => Mitra::where('business_type', 'wisata')->count(),
+            'hotels'       => Mitra::where('business_type', 'hotel')->count(),
+            'restaurants'  => Mitra::where('business_type', 'restoran')->count(),
+            'mitras'       => Mitra::count(),
         ];
 
         return view('admin.mitra-submissions.index', compact('submissions', 'stats', 'type', 'status'));

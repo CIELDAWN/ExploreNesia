@@ -97,11 +97,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
         return view('user.profile');
     })->name('profile');
     
-    // Destinations
+    // Destinations & Bookings
     Route::get('/destinations', [UserDestinationController::class, 'index'])->name('destinations');
     Route::get('/destinations/{slug}', [UserDestinationController::class, 'show'])->name('destinations.show');
-    Route::post('/destinations/{slug}/book', [UserBookingController::class, 'store'])->name('destinations.book');
+
     Route::get('/hotels/{slug}', [UserHotelController::class, 'show'])->name('hotels.show');
+
     Route::get('/restaurants/{slug}', [UserRestaurantController::class, 'show'])->name('restaurants.show');
     
     // Favorites
@@ -109,4 +110,16 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::post('/favorites', [FavoriteController::class, 'store'])->name('favorites.store');
     Route::delete('/favorites/{id}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+});
+
+// Booking routes (explicit) - protected by auth middleware
+Route::middleware(['auth'])->group(function () {
+    Route::post('/user/destinations/{slug}/book', [UserBookingController::class, 'storeDestination'])
+        ->name('user.destinations.book');
+
+    Route::post('/user/hotels/{slug}/book', [UserBookingController::class, 'storeHotel'])
+        ->name('user.hotels.book');
+
+    Route::post('/user/restaurants/{slug}/book', [UserBookingController::class, 'storeRestaurant'])
+        ->name('user.restaurants.book');
 });

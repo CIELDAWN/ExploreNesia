@@ -137,6 +137,54 @@
             </div>
         </div>
 
+        <!-- Pricing Section -->
+        <div class="mt-6 border-t pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Pengaturan Harga</h3>
+
+            <div id="pricing-wisata" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Harga Tiket /orang (Wisata)
+                    </label>
+                    <input type="number" step="0.01" min="0" name="ticket_price"
+                           value="{{ old('ticket_price', $mitra->ticket_price) }}"
+                           class="input-control" placeholder="Contoh: 25000">
+                    <p class="text-xs text-gray-500 mt-1">Biarkan kosong jika tiket gratis.</p>
+                </div>
+            </div>
+
+            <div id="pricing-restoran" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Harga Reservasi Tempat (Restoran)
+                    </label>
+                    <input type="number" step="0.01" min="0" name="reservation_price"
+                           value="{{ old('reservation_price', $mitra->reservation_price) }}"
+                           class="input-control" placeholder="Contoh: 100000">
+                    <p class="text-xs text-gray-500 mt-1">Biaya minimal reservasi meja/tempat.</p>
+                </div>
+            </div>
+
+            <div id="pricing-hotel" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Harga Kamar Kasur 1 (per malam)
+                    </label>
+                    <input type="number" step="0.01" min="0" name="room_price_single"
+                           value="{{ old('room_price_single', $mitra->room_price_single) }}"
+                           class="input-control" placeholder="Contoh: 350000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Harga Kamar Kasur 2 (per malam)
+                    </label>
+                    <input type="number" step="0.01" min="0" name="room_price_double"
+                           value="{{ old('room_price_double', $mitra->room_price_double) }}"
+                           class="input-control" placeholder="Contoh: 450000">
+                </div>
+            </div>
+        </div>
+
         <!-- Tags Selection -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Tags <span class="text-gray-500 text-xs">(Pilih tags yang sesuai dengan bisnis Anda)</span></label>
@@ -180,9 +228,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     const provinceSelect = document.getElementById('province-select');
     const citySelect = document.getElementById('city-select');
+    const businessTypeSelect = document.querySelector('select[name="business_type"]');
+
+    function updatePricingVisibility() {
+        const type = businessTypeSelect.value;
+        document.getElementById('pricing-wisata').classList.add('hidden');
+        document.getElementById('pricing-restoran').classList.add('hidden');
+        document.getElementById('pricing-hotel').classList.add('hidden');
+
+        if (type === 'wisata') {
+            document.getElementById('pricing-wisata').classList.remove('hidden');
+        } else if (type === 'restoran') {
+            document.getElementById('pricing-restoran').classList.remove('hidden');
+        } else if (type === 'hotel') {
+            document.getElementById('pricing-hotel').classList.remove('hidden');
+        }
+    }
 
     // Initialize on page load
     filterCities();
+    updatePricingVisibility();
 
     provinceSelect.addEventListener('change', function() {
         // Reset city select when province changes
@@ -207,6 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Enable/disable city select
         citySelect.disabled = !provinceName;
     }
+
+    businessTypeSelect.addEventListener('change', updatePricingVisibility);
 });
 </script>
 @endpush

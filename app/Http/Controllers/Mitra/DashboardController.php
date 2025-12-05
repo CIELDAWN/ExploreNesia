@@ -70,7 +70,7 @@ class DashboardController extends Controller
                 ->with('error', 'Data bisnis Anda sudah ada.');
         }
 
-        $request->validate([
+        $rules = [
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|in:hotel,restoran,wisata',
             'business_description' => 'required|string',
@@ -81,7 +81,13 @@ class DashboardController extends Controller
             'contact_email' => 'nullable|email',
             'website' => 'nullable|url',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+            'ticket_price' => 'nullable|numeric|min:0',
+            'reservation_price' => 'nullable|numeric|min:0',
+            'room_price_single' => 'nullable|numeric|min:0',
+            'room_price_double' => 'nullable|numeric|min:0',
+        ];
+
+        $request->validate($rules);
 
         // Find or create province
         $provinceCode = $this->getProvinceCode($request->province_name);
@@ -107,6 +113,10 @@ class DashboardController extends Controller
             'contact_phone' => $request->contact_phone,
             'contact_email' => $request->contact_email,
             'website' => $request->website,
+            'ticket_price' => $request->ticket_price,
+            'reservation_price' => $request->reservation_price,
+            'room_price_single' => $request->room_price_single,
+            'room_price_double' => $request->room_price_double,
             'status' => 'pending'
         ];
 
@@ -117,8 +127,8 @@ class DashboardController extends Controller
 
         $mitra = Mitra::create($data);
 
+        // Tags akan diterapkan saat listing publik dibuat setelah disetujui admin
         $tagIds = $request->input('tags', []);
-        MitraBusinessSynchronizer::sync($mitra, $tagIds);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil disimpan! Menunggu persetujuan admin.');
@@ -168,7 +178,7 @@ class DashboardController extends Controller
                 ->with('error', 'Data bisnis tidak ditemukan.');
         }
 
-        $request->validate([
+        $rules = [
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|in:hotel,restoran,wisata',
             'business_description' => 'required|string',
@@ -179,7 +189,13 @@ class DashboardController extends Controller
             'contact_email' => 'nullable|email',
             'website' => 'nullable|url',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+            'ticket_price' => 'nullable|numeric|min:0',
+            'reservation_price' => 'nullable|numeric|min:0',
+            'room_price_single' => 'nullable|numeric|min:0',
+            'room_price_double' => 'nullable|numeric|min:0',
+        ];
+
+        $request->validate($rules);
 
         // Find or create province
         $provinceCode = $this->getProvinceCode($request->province_name);
@@ -204,6 +220,10 @@ class DashboardController extends Controller
             'contact_phone' => $request->contact_phone,
             'contact_email' => $request->contact_email,
             'website' => $request->website,
+            'ticket_price' => $request->ticket_price,
+            'reservation_price' => $request->reservation_price,
+            'room_price_single' => $request->room_price_single,
+            'room_price_double' => $request->room_price_double,
         ];
 
         // Handle thumbnail upload
@@ -217,8 +237,8 @@ class DashboardController extends Controller
 
         $mitra->update($data);
 
+        // Tags akan diterapkan saat listing publik dibuat/setelah disetujui admin
         $tagIds = $request->input('tags', []);
-        MitraBusinessSynchronizer::sync($mitra, $tagIds);
 
         return redirect()->route('mitra.dashboard')
             ->with('success', 'Data bisnis berhasil diperbarui!');

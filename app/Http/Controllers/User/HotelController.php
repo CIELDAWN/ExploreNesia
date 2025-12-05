@@ -20,3 +20,5 @@ class HotelController extends Controller
 }
 
 
+
+

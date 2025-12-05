@@ -44,15 +44,16 @@ class MitraBusinessSynchronizer
         }
 
         $destination->fill([
-            'city_id' => $mitra->city_id,
-            'category_id' => self::defaultCategoryId(),
-            'name' => $mitra->business_name,
-            'description' => $mitra->business_description,
-            'address' => $mitra->business_address,
-            'contact_phone' => $mitra->contact_phone,
-            'contact_email' => $mitra->contact_email,
-            'website' => $mitra->website,
-            'thumbnail' => $mitra->thumbnail,
+            'city_id'        => $mitra->city_id,
+            'category_id'    => self::defaultCategoryId(),
+            'name'           => $mitra->business_name,
+            'description'    => $mitra->business_description ?: 'Belum ada deskripsi',
+            'address'        => $mitra->business_address ?: 'Alamat belum diisi',
+            'entrance_fee'   => $mitra->ticket_price, // harga tiket dari mitra
+            'contact_phone'  => $mitra->contact_phone,
+            'contact_email'  => $mitra->contact_email,
+            'website'        => $mitra->website,
+            'thumbnail'      => $mitra->thumbnail,
         ]);
 
         $destination->status = $mitra->status;
@@ -73,14 +74,16 @@ class MitraBusinessSynchronizer
         }
 
         $hotel->fill([
-            'city_id' => $mitra->city_id,
-            'name' => $mitra->business_name,
-            'description' => $mitra->business_description,
-            'address' => $mitra->business_address,
-            'contact_phone' => $mitra->contact_phone,
-            'contact_email' => $mitra->contact_email,
-            'website' => $mitra->website,
-            'thumbnail' => $mitra->thumbnail,
+            'city_id'              => $mitra->city_id,
+            'name'                 => $mitra->business_name,
+            'description'          => $mitra->business_description ?: 'Belum ada deskripsi',
+            'address'              => $mitra->business_address ?: 'Alamat belum diisi',
+            'price_per_night_min'  => $mitra->room_price_single,
+            'price_per_night_max'  => $mitra->room_price_double,
+            'contact_phone'        => $mitra->contact_phone,
+            'contact_email'        => $mitra->contact_email,
+            'website'              => $mitra->website,
+            'thumbnail'            => $mitra->thumbnail,
         ]);
 
         $hotel->status = $mitra->status;
@@ -101,15 +104,22 @@ class MitraBusinessSynchronizer
         }
 
         $restaurant->fill([
-            'city_id' => $mitra->city_id,
-            'name' => $mitra->business_name,
-            'description' => $mitra->business_description,
-            'address' => $mitra->business_address,
+            'city_id'       => $mitra->city_id,
+            'name'          => $mitra->business_name,
+            'description'   => $mitra->business_description ?: 'Belum ada deskripsi',
+            'address'       => $mitra->business_address ?: 'Alamat belum diisi',
             'contact_phone' => $mitra->contact_phone,
             'contact_email' => $mitra->contact_email,
-            'website' => $mitra->website,
-            'thumbnail' => $mitra->thumbnail,
+            'website'       => $mitra->website,
+            'thumbnail'     => $mitra->thumbnail,
         ]);
+
+        // Hanya inisialisasi rentang harga dari reservation_price ketika listing pertama kali dibuat
+        // atau ketika kedua nilai harga belum diisi. Jangan timpa rentang harga yang sudah diatur.
+        if (!$restaurant->exists || (is_null($restaurant->average_price_min) && is_null($restaurant->average_price_max))) {
+            $restaurant->average_price_min = $mitra->reservation_price;
+            $restaurant->average_price_max = $mitra->reservation_price;
+        }
 
         $restaurant->status = $mitra->status;
         $restaurant->is_active = $mitra->status === 'approved';

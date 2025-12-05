@@ -9,23 +9,42 @@ use App\Models\Mitra;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Tag;
+use App\Models\Hotel;
+use App\Models\Restaurant;
 use App\Services\MitraBusinessSynchronizer;
 
 class DestinationController extends Controller
 {
     public function index(Request $request)
     {
-        // Pastikan bisnis mitra yang sudah ada ikut tersinkron ke destinasi
+        // Pastikan semua bisnis mitra tersinkron ke destinasi hanya ketika belum ada destinasi sama sekali
         if (Destination::count() === 0) {
             Mitra::all()->each(function (Mitra $mitra) {
                 MitraBusinessSynchronizer::sync($mitra);
             });
         }
 
-        // Hanya tampilkan destinasi wisata (bukan hotel/restoran) yang sudah di-approve
-        $query = Destination::with(['city', 'category', 'tags'])
-            ->where('status', 'approved')
-            ->where('is_active', true);
+        $businessType = $request->get('business_type', 'destination');
+
+        // Build base query berdasarkan jenis bisnis yang dipilih
+        switch ($businessType) {
+            case 'hotel':
+                $query = Hotel::with(['city', 'tags'])
+                    ->where('status', 'approved')
+                    ->where('is_active', true);
+                break;
+            case 'restaurant':
+                $query = Restaurant::with(['city', 'tags'])
+                    ->where('status', 'approved')
+                    ->where('is_active', true);
+                break;
+            default: // destination / wisata
+                $businessType = 'destination';
+                $query = Destination::with(['city', 'category', 'tags'])
+                    ->where('status', 'approved')
+                    ->where('is_active', true);
+                break;
+        }
 
         // Search by name or description
         if ($request->has('search') && $request->search != '') {
@@ -36,8 +55,8 @@ class DestinationController extends Controller
             });
         }
 
-        // Filter by kategori destinasi
-        if ($request->has('category') && $request->category != '') {
+        // Filter by kategori destinasi (hanya untuk destinasi wisata)
+        if ($businessType === 'destination' && $request->has('category') && $request->category != '') {
             $query->where('category_id', $request->category);
         }
 
@@ -46,12 +65,26 @@ class DestinationController extends Controller
             $query->where('city_id', $request->city);
         }
 
-        // Filter by price range
+        // Filter by price range, field menyesuaikan jenis bisnis
         if ($request->has('min_price') && $request->min_price != '') {
-            $query->where('entrance_fee', '>=', $request->min_price);
+            $min = $request->min_price;
+            if ($businessType === 'hotel') {
+                $query->where('price_per_night_min', '>=', $min);
+            } elseif ($businessType === 'restaurant') {
+                $query->where('average_price_min', '>=', $min);
+            } else {
+                $query->where('entrance_fee', '>=', $min);
+            }
         }
         if ($request->has('max_price') && $request->max_price != '') {
-            $query->where('entrance_fee', '<=', $request->max_price);
+            $max = $request->max_price;
+            if ($businessType === 'hotel') {
+                $query->where('price_per_night_max', '<=', $max);
+            } elseif ($businessType === 'restaurant') {
+                $query->where('average_price_max', '<=', $max);
+            } else {
+                $query->where('entrance_fee', '<=', $max);
+            }
         }
 
         // Filter by tags (multiple tags - OR logic: must have at least one selected tag)
@@ -64,14 +97,26 @@ class DestinationController extends Controller
             }
         }
 
-        // Sorting
+        // Sorting, field menyesuaikan jenis bisnis
         $sort = $request->get('sort', 'latest');
         switch ($sort) {
             case 'price_low':
-                $query->orderBy('entrance_fee', 'asc');
+                if ($businessType === 'hotel') {
+                    $query->orderBy('price_per_night_min', 'asc');
+                } elseif ($businessType === 'restaurant') {
+                    $query->orderBy('average_price_min', 'asc');
+                } else {
+                    $query->orderBy('entrance_fee', 'asc');
+                }
                 break;
             case 'price_high':
-                $query->orderBy('entrance_fee', 'desc');
+                if ($businessType === 'hotel') {
+                    $query->orderBy('price_per_night_max', 'desc');
+                } elseif ($businessType === 'restaurant') {
+                    $query->orderBy('average_price_max', 'desc');
+                } else {
+                    $query->orderBy('entrance_fee', 'desc');
+                }
                 break;
             case 'popular':
                 $query->orderBy('view_count', 'desc');
@@ -91,8 +136,7 @@ class DestinationController extends Controller
         
         // Get all tags for filter
         $tags = Tag::orderBy('name')->get();
-
-        return view('user.destinations.index', compact('destinations', 'categories', 'cities', 'tags'));
+        return view('user.destinations.index', compact('destinations', 'categories', 'cities', 'tags', 'businessType'));
     }
 
     public function show($slug)

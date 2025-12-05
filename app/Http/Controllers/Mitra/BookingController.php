@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Mitra;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Destination;
+use App\Models\Hotel;
+use App\Models\Restaurant;
 use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
@@ -17,7 +19,7 @@ class BookingController extends Controller
         $user = Auth::user();
 
         $bookings = Booking::with(['user', 'bookable'])
-            ->whereHasMorph('bookable', [Destination::class], function ($query) use ($user) {
+            ->whereHasMorph('bookable', [Destination::class, Hotel::class, Restaurant::class], function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
             ->latest()
@@ -26,5 +28,7 @@ class BookingController extends Controller
         return view('mitra.bookings.index', compact('bookings'));
     }
 }
+
+
 
 

@@ -4,8 +4,27 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Header Section -->
     <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Jelajahi Destinasi Wisata</h1>
-        <p class="text-gray-600 text-lg">Temukan tempat wisata menarik di seluruh Indonesia</p>
+        @php
+            $currentType = $businessType ?? 'destination';
+        @endphp
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            @if($currentType === 'hotel')
+                Jelajahi Hotel Mitra
+            @elseif($currentType === 'restaurant')
+                Jelajahi Restoran Mitra
+            @else
+                Jelajahi Destinasi Wisata
+            @endif
+        </h1>
+        <p class="text-gray-600 text-lg">
+            @if($currentType === 'hotel')
+                Temukan hotel pilihan mitra ExploreNesia
+            @elseif($currentType === 'restaurant')
+                Temukan restoran pilihan mitra ExploreNesia
+            @else
+                Temukan tempat wisata menarik di seluruh Indonesia
+            @endif
+        </p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -24,16 +43,13 @@
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
                     </div>
 
-                    <!-- Category Filter -->
+                    <!-- Business Type Filter -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                        <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
-                            <option value="">Semua Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->icon }} {{ $category->name }}
-                                </option>
-                            @endforeach
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis</label>
+                        <select name="business_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500">
+                            <option value="destination" {{ $currentType === 'destination' ? 'selected' : '' }}>Wisata Mitra</option>
+                            <option value="hotel" {{ $currentType === 'hotel' ? 'selected' : '' }}>Hotel Mitra</option>
+                            <option value="restaurant" {{ $currentType === 'restaurant' ? 'selected' : '' }}>Restoran Mitra</option>
                         </select>
                     </div>
 
@@ -116,8 +132,11 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <p class="text-gray-600">
+                        @php
+                            $label = $currentType === 'hotel' ? 'hotel' : ($currentType === 'restaurant' ? 'restoran' : 'destinasi');
+                        @endphp
                         Menampilkan <span class="font-semibold">{{ $destinations->firstItem() ?: 0 }}-{{ $destinations->lastItem() ?: 0 }}</span>
-                        dari <span class="font-semibold">{{ $destinations->total() }}</span> destinasi
+                        dari <span class="font-semibold">{{ $destinations->total() }}</span> {{ $label }}
                     </p>
                 </div>
             </div>
@@ -125,11 +144,11 @@
             <!-- Destinations Grid -->
             @if($destinations->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    @foreach($destinations as $destination)
+                    @foreach($destinations as $item)
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300">
                         <!-- Image -->
-                        @if($destination->thumbnail)
-                            <div class="h-48 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $destination->thumbnail) }}');"></div>
+                        @if($item->thumbnail)
+                            <div class="h-48 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $item->thumbnail) }}');"></div>
                         @else
                             <div class="h-48 bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center">
                                 <i class="fas fa-map-marked-alt text-white text-4xl"></i>
@@ -141,14 +160,20 @@
                             <!-- Category Badge & Favorite -->
                             <div class="flex justify-between items-start mb-3">
                                 <span class="inline-block px-3 py-1 bg-ocean-100 text-ocean-700 text-xs font-semibold rounded-full">
-                                    {{ $destination->category->icon ?? '📍' }} {{ $destination->category->name ?? 'Umum' }}
+                                    @if($currentType === 'hotel')
+                                        <i class="fas fa-hotel mr-1"></i> Hotel Mitra
+                                    @elseif($currentType === 'restaurant')
+                                        <i class="fas fa-utensils mr-1"></i> Restoran Mitra
+                                    @else
+                                        {{ $item->category->icon ?? '📍' }} {{ $item->category->name ?? 'Wisata Mitra' }}
+                                    @endif
                                 </span>
                                 @auth
                                 <form action="{{ route('user.favorites.toggle') }}" method="POST" class="favorite-form">
                                     @csrf
-                                    <input type="hidden" name="destination_id" value="{{ $destination->id }}">
+                                    <input type="hidden" name="destination_id" value="{{ $item->id }}">
                                     <button type="submit" class="favorite-btn text-gray-400 hover:text-red-500 transition">
-                                        @if(auth()->user()->favorites()->where('destination_id', $destination->id)->exists())
+                                        @if(auth()->user()->favorites()->where('destination_id', $item->id)->exists())
                                             <i class="fas fa-heart text-red-500"></i>
                                         @else
                                             <i class="far fa-heart"></i>
@@ -163,29 +188,29 @@
                             </div>
 
                             <!-- Title & Location -->
-                            <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{{ $destination->name }}</h3>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{{ $item->name }}</h3>
                             <div class="flex items-center text-gray-600 mb-3">
                                 <i class="fas fa-map-marker-alt text-sm mr-2 text-ocean-600"></i>
-                                <span class="text-sm">{{ $destination->city->name ?? 'N/A' }}</span>
+                                <span class="text-sm">{{ $item->city->name ?? 'N/A' }}</span>
                             </div>
 
                             <!-- Description -->
                             <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-                                {{ Str::limit(strip_tags($destination->description), 100) }}
+                                {{ Str::limit(strip_tags($item->description), 100) }}
                             </p>
 
                             <!-- Tags -->
-                            @if($destination->tags->count() > 0)
+                            @if($item->tags->count() > 0)
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    @foreach($destination->tags->take(3) as $tag)
+                                    @foreach($item->tags->take(3) as $tag)
                                         <span class="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
                                               style="background-color: {{ $tag->color ?? '#3B82F6' }}">
                                             {{ $tag->name }}
                                         </span>
                                     @endforeach
-                                    @if($destination->tags->count() > 3)
+                                    @if($item->tags->count() > 3)
                                         <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700">
-                                            +{{ $destination->tags->count() - 3 }}
+                                            +{{ $item->tags->count() - 3 }}
                                         </span>
                                     @endif
                                 </div>
@@ -193,26 +218,66 @@
 
                             <!-- Stats -->
                             <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                                <span><i class="fas fa-eye mr-1"></i>{{ number_format($destination->view_count) }}</span>
+                                <span><i class="fas fa-eye mr-1"></i>{{ number_format($item->view_count ?? 0) }}</span>
                                 <span><i class="fas fa-star text-yellow-400 mr-1"></i>4.5</span>
                             </div>
 
                             <!-- Price & Action -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    @if($destination->entrance_fee > 0)
-                                    <span class="text-ocean-600 font-bold text-lg">
-                                        Rp {{ number_format($destination->entrance_fee, 0, ',', '.') }}
-                                    </span>
-                                    <span class="text-gray-500 text-sm block">/orang</span>
+                                    @if($currentType === 'hotel')
+                                        @if($item->price_per_night_min > 0)
+                                            <span class="text-ocean-600 font-bold text-lg">
+                                                Rp {{ number_format($item->price_per_night_min, 0, ',', '.') }}
+                                            </span>
+                                            @if($item->price_per_night_max && $item->price_per_night_max > $item->price_per_night_min)
+                                                <span class="text-gray-500 text-sm block">- Rp {{ number_format($item->price_per_night_max, 0, ',', '.') }} /malam</span>
+                                            @else
+                                                <span class="text-gray-500 text-sm block">/malam</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-500 text-sm">Harga belum tersedia</span>
+                                        @endif
+                                    @elseif($currentType === 'restaurant')
+                                        @if($item->average_price_min > 0)
+                                            <span class="text-ocean-600 font-bold text-lg">
+                                                Rp {{ number_format($item->average_price_min, 0, ',', '.') }}
+                                            </span>
+                                            @if($item->average_price_max && $item->average_price_max > $item->average_price_min)
+                                                <span class="text-gray-500 text-sm block">- Rp {{ number_format($item->average_price_max, 0, ',', '.') }} /orang</span>
+                                            @else
+                                                <span class="text-gray-500 text-sm block">/orang</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-500 text-sm">Harga belum tersedia</span>
+                                        @endif
                                     @else
-                                    <span class="text-forest-600 font-bold text-lg">Gratis</span>
+                                        @if($item->entrance_fee > 0)
+                                            <span class="text-ocean-600 font-bold text-lg">
+                                                Rp {{ number_format($item->entrance_fee, 0, ',', '.') }}
+                                            </span>
+                                            <span class="text-gray-500 text-sm block">/orang</span>
+                                        @else
+                                            <span class="text-forest-600 font-bold text-lg">Gratis</span>
+                                        @endif
                                     @endif
                                 </div>
-                                <a href="{{ route('user.destinations.show', $destination->slug) }}"
+                                @if($currentType === 'hotel')
+                                    <a href="{{ route('user.hotels.show', $item->slug) }}"
+                                   class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
+                                    Detail
+                                    </a>
+                                @elseif($currentType === 'restaurant')
+                                    <a href="{{ route('user.restaurants.show', $item->slug) }}"
+                                   class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
+                                    Detail
+                                    </a>
+                                @else
+                                <a href="{{ route('user.destinations.show', $item->slug) }}"
                                    class="inline-block bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-ocean-700 transition">
                                     Detail
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>
