@@ -64,6 +64,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // User Management
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::patch('users/{user}/toggle-verification', [UserController::class, 'toggleEmailVerification'])->name('users.toggle-verification');
 
     // Category Management
     Route::resource('categories', CategoryController::class);
