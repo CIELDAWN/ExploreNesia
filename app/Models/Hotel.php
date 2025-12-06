@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Review;
 
 class Hotel extends Model
 {
@@ -72,7 +73,13 @@ class Hotel extends Model
 
     public function averageRating(): float
     {
-        return round($this->reviews()->avg('rating') ?? 0, 1);
+        // Rating hotel dihitung dari tabel reviews berdasarkan business_type dan business_name
+        return round(
+            Review::where('business_type', 'hotel')
+                ->where('business_name', $this->name)
+                ->avg('rating') ?? 0,
+            1
+        );
     }
 
     public function primaryCategory(): ?Category

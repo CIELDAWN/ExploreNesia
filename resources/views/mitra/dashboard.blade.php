@@ -126,46 +126,7 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-xl shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fas fa-bolt text-ocean-600"></i>
-            Aksi Cepat
-        </h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="{{ route('mitra.edit') }}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-ocean-300 hover:bg-ocean-50 transition-colors">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-edit text-blue-600"></i>
-                </div>
-                <div>
-                    <h4 class="font-medium text-gray-900">Edit Bisnis</h4>
-                    <p class="text-sm text-gray-500">Perbarui informasi bisnis</p>
-                </div>
-            </a>
-
-            <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg opacity-50">
-                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <i class="fas fa-chart-line text-green-600"></i>
-                </div>
-                <div>
-                    <h4 class="font-medium text-gray-900">Statistik</h4>
-                    <p class="text-sm text-gray-500">Segera hadir</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg opacity-50">
-                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                    <i class="fas fa-star text-purple-600"></i>
-                </div>
-                <div>
-                    <h4 class="font-medium text-gray-900">Ulasan</h4>
-                    <p class="text-sm text-gray-500">Segera hadir</p>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
 @else
 <!-- No Business Data -->
 <div class="bg-white rounded-xl shadow-sm p-8">

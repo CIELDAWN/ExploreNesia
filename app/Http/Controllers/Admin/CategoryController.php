@@ -54,7 +54,8 @@ class CategoryController extends Controller
     public function show(Category $category)
     {
         $category->load(['destinations' => function($query) {
-            $query->latest()->take(10);
+            // Gunakan kolom created_at dari tabel destinations secara eksplisit
+            $query->orderByDesc('destinations.created_at')->take(10);
         }]);
 
         return view('admin.categories.show', compact('category'));
