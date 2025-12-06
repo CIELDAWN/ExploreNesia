@@ -9,7 +9,7 @@ class HotelController extends Controller
 {
     public function show(string $slug)
     {
-        $hotel = Hotel::with(['city', 'tags'])
+        $hotel = Hotel::with(['city'])
             ->where('slug', $slug)
             ->where('status', 'approved')
             ->where('is_active', true)

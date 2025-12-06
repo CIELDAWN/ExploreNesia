@@ -9,7 +9,7 @@ class RestaurantController extends Controller
 {
     public function show(string $slug)
     {
-        $restaurant = Restaurant::with(['city', 'tags'])
+        $restaurant = Restaurant::with(['city'])
             ->where('slug', $slug)
             ->where('status', 'approved')
             ->where('is_active', true)

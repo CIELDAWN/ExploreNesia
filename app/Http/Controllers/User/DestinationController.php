@@ -227,7 +227,7 @@ class DestinationController extends Controller
 
     public function show($slug)
     {
-        $destination = Destination::with(['city', 'category', 'tags'])
+        $destination = Destination::with(['city', 'category'])
             ->where('slug', $slug)
             ->where('status', 'approved')
             ->where('is_active', true)
@@ -240,7 +240,8 @@ class DestinationController extends Controller
         $isFavorite = false;
         if (auth()->check()) {
             $isFavorite = auth()->user()->favorites()
-                ->where('destination_id', $destination->id)
+                ->where('favoritable_type', Destination::class)
+                ->where('favoritable_id', $destination->id)
                 ->exists();
         }
 

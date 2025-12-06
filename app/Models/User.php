@@ -99,7 +99,8 @@ class User extends Authenticatable
     public function hasFavorited($destinationId): bool
     {
         return $this->favorites()
-            ->where('destination_id', $destinationId)
+            ->where('favoritable_type', Destination::class)
+            ->where('favoritable_id', $destinationId)
             ->exists();
     }
 

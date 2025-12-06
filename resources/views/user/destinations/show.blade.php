@@ -47,17 +47,6 @@
                         </div>
                     @endif
                 </div>
-
-                @if($destination->tags->count() > 0)
-                    <div class="mt-4 flex flex-wrap gap-2">
-                        @foreach($destination->tags as $tag)
-                            <span class="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
-                                  style="background-color: {{ $tag->color ?? '#3B82F6' }}">
-                                {{ $tag->name }}
-                            </span>
-                        @endforeach
-                    </div>
-                @endif
             </div>
         </div>
 
